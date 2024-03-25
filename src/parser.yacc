@@ -17,6 +17,8 @@ extern int  yywrap();
 // your parser
 
 %union {
+  //这里直接copy TeaplAst.h里的定义
+  // 43个
   A_pos pos;
   A_program program;
   A_programElementList programElementList;
@@ -27,13 +29,84 @@ extern int  yywrap();
   A_varDeclStmt varDeclStmt;
   A_fnDeclStmt fnDeclStmt;
   A_fnDef fnDef;
+  A_type type;
+  A_varDecl varDecl; 
+  A_varDef varDef;
+  A_rightVal rightVal;
+  A_boolExpr boolExpr;
+  A_arithBiOpExpr arithBiOpExpr;
+  A_arithUExpr arithUExpr;
+  A_fnCall fnCall;
+  A_indexExpr indexExpr;
+  A_arrayExpr arrayExpr;
+  A_memberExpr memberExpr;
+  A_boolUnit boolUnit;
+  A_boolBiOpExpr boolBiOpExpr;
+  A_boolUOpExpr boolUOpExpr;
+  A_comExpr comExpr;
+  A_leftVal leftVal;
+  A_assignStmt assignStmt;
+  A_rightValList rightValList;
+  A_varDefScalar varDefScalar;
+  A_varDefArray varDefArray;
+  A_varDeclScalar varDeclScalar;
+  A_varDeclArray varDeclArray;
+  A_varDeclList varDeclList;
+  A_paramDecl paramDecl;
+  A_fnDecl fnDecl;
+  A_codeBlockStmt codeBlockStmt;
+  A_ifStmt ifStmt;
+  A_whileStmt whileStmt;
+  A_callStmt callStmt;
+  A_returnStmt returnStmt;
+  A_codeBlockStmtList codeBlockStmtList;
+  A_tokenId tokenId;
+  A_tokenNum_ tokenNum;
 }
-
+//token, 将lexer.lex中对终止符的定义映射到token
+//保留字 10
+%token <pos> IF
+%token <pos> ELSE
+%token <pos> WHILE
+%token <pos> BREAK
+%token <pos> CONTINUE
+%token <pos> RET
+%token <pos> LET
+%token <pos> INT
+%token <pos> STRUCT
+%token <pos> FN
+// OP 13
 %token <pos> ADD
 %token <pos> SUB
 %token <pos> MUL
 %token <pos> DIV
-%token <pos> SEMICOLON // ;
+%token <pos> EQ
+%token <pos> NE
+%token <pos> LT
+%token <pos> LE
+%token <pos> GT
+%token <pos> GE
+%token <pos> AND
+%token <pos> OR
+%token <pos> NOT
+//赋值
+%token <pos> ASSIGN
+// 连接分隔符 10
+%token <pos> SEMI
+%token <pos> COMMA
+%token <pos> DOT
+%token <pos> LP
+%token <pos> RP
+%token <pos> LB
+%token <pos> RB
+%token <pos> LC // left curly
+%token <pos> RC
+%token <pos> RA // right arrow
+// 数字和名
+%token <pos> NUM
+%token <tokenNum> UNUM
+%token <tokenId> ID
+
 
 %type <program> Program
 %type <arithExpr> ArithExpr
@@ -82,7 +155,7 @@ ProgramElement: VarDeclStmt
 {
   $$ = A_ProgramFnDef($1->pos, $1);
 }
-| SEMICOLON
+| SEMI
 {
   $$ = A_ProgramNullStmt($1);
 }
