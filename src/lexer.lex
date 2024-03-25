@@ -3,34 +3,31 @@
 #include <string.h>
 #include "TeaplAst.h"
 #include "y.tab.hpp"
-extern int line, col; // line is current line number, col is current column number
+extern int line, col; /* line is current line number, col is current column number*/
 int c;
 int calc(char *s, int len);
 %}
 
-/* TODO:
-    your lexer
-*/
 %start COMMENT_1 COMMENT_2
 
 %%
 <INITIAL>{ 
     /* 无意义字符 */
-    " " { ++col; }
+    " " { col+=1; }
     "\t" { col+=4; }
-    [\n\r]{ ++line; col=0; }
+    [\n\r] { line+=1; col=0; }
     "//" { BEGIN COMMENT_1; }
     "/*" { BEGIN COMMENT_2; }
     /* 保留字 10 */
     "if"   { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return IF; }
     "else" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return ELSE; }
-    "while"{ yylval.pos=A_Pos(line,col);col+=strlen(yytext);return WHILE; }
-    "break"{ yylval.pos=A_Pos(line,col);col+=strlen(yytext);return BREAK; }
-    "continue"{ yylval.pos=A_Pos(line,col);col+=strlen(yytext);return CONTINUE; }
+    "while" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return WHILE; }
+    "break" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return BREAK; }
+    "continue" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return CONTINUE; }
     "ret"  { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return RET; }
     "let"  { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return LET; }
     "int"  { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return INT; }
-    "struct"{ yylval.pos=A_Pos(line,col);col+=strlen(yytext);return STRUCT; }
+    "struct" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return STRUCT; }
     "fn"   { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return FN; }
     /* OP 13 */
     "+"    { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return ADD; }

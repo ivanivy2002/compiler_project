@@ -26,3 +26,64 @@ cap = cap[:-2]
 for i in range(len(cap)):
     print(f"//{i+1}")
     print(f"{cap[i]}:")
+    
+    
+A_program 
+      |--A_programElement 
+              |--A_fnDef 
+                      |--A_fnDecl fn main(
+                              |--A_paramDecl )->
+                      |--A_type int{
+
+                      |--A_codeBlockStmt 
+                              |--A_callStmt 
+                                      |--A_fnCall _sysy_starttime(
+                                      |--A_rightVal 
+                                              |--A_arithExpr 
+                                                      |--A_exprUnit 4);
+
+                      |--A_codeBlockStmt 
+                              |--A_varDeclStmt let 
+                                      |--A_varDef 
+                                              |--A_varDefScalar i:
+                                              |--A_type int = 
+                                              |--A_rightVal 
+                                                      |--A_arithExpr 
+                                                              |--A_exprUnit 0;
+
+                      |--A_codeBlockStmt 
+                              |--A_varDeclStmt let 
+                                      |--A_varDef 
+                                              |--A_varDefScalar sum:
+                                              |--A_type int = 
+                                              |--A_rightVal 
+                                                      |--A_arithExpr 
+                                                              |--A_exprUnit 0;
+
+                      |--A_codeBlockStmt 
+                              |--A_assignStmt 
+                                      |--A_leftVal i = 
+                                      |--A_rightVal 
+                                              |--A_arithExpr 
+                                                      |--A_exprUnit 0;
+
+                      |--A_codeBlockStmt 
+                              |--A_callStmt 
+                                      |--A_fnCall putint(
+                                      |--A_rightVal 
+                                              |--A_arithExpr 
+                                                      |--A_exprUnit sum);
+
+                      |--A_codeBlockStmt 
+                              |--A_callStmt 
+                                      |--A_fnCall _sysy_stoptime(
+                                      |--A_rightVal 
+                                              |--A_arithExpr 
+                                                      |--A_exprUnit 19);
+
+                      |--A_codeBlockStmt 
+                              |--A_returnStmt ret 
+                              |--A_rightVal 
+                                      |--A_arithExpr 
+                                              |--A_exprUnit 0;
+}
