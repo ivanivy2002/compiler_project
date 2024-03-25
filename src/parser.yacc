@@ -61,7 +61,7 @@ extern int  yywrap();
   A_returnStmt returnStmt;
   A_codeBlockStmtList codeBlockStmtList;
   A_tokenId tokenId;
-  A_tokenNum_ tokenNum;
+  A_tokenNum tokenNum;
 }
 
 //token, 将lexer.lex中对终止符的定义映射到token
@@ -271,7 +271,7 @@ ArithUExpr{
 StructDef: 
 STRUCT ID LC VarDeclList RC
 {
-  $$ = A_StructDef($1->pos, $2, $4);
+  $$ = A_StructDef($1, $2->id, $4);
 }
 ;
 
@@ -279,11 +279,11 @@ STRUCT ID LC VarDeclList RC
 // A_varDeclStmt A_VarDeclStmt(A_pos pos, A_varDecl varDecl);
 // A_varDeclStmt A_VarDefStmt(A_pos pos, A_varDef varDef);
 VarDeclStmt: 
-  LET VarDeclList SEMI {
-  $$ = A_VarDeclStmt($1->pos, $2);
+  LET VarDecl SEMI {
+  $$ = A_VarDeclStmt($1, $2);
 }
 | LET VarDef SEMI {
-  $$ = A_VarDefStmt($1->pos, $2);
+  $$ = A_VarDefStmt($1, $2);
 }
 
 //8
@@ -309,56 +309,39 @@ FnDef:
 Type:
 INT
 {
-  $$ = A_NativeType($1->pos, A_int);
+  $$ = A_NativeType($1, A_intTypeKind);
 }
 | ID
 {
   $$ = A_StructType($1->pos, $1->id);
 }
+;
+
 //11
-// A_varDeclScalar A_VarDeclScalar(A_pos pos, char* id, A_type type);
-// A_varDeclArray A_VarDeclArray(A_pos pos, char* id, int len, A_type type);
 // A_varDecl A_VarDecl_Scalar(A_pos pos, A_varDeclScalar declScalar);
 // A_varDecl A_VarDecl_Array(A_pos pos, A_varDeclArray declArray);
 VarDecl:
-ID COLON Type
+VarDeclScalar
 {
-  $$ = A_VarDecl_Scalar($1->pos, A_VarDeclScalar($1->pos, $1->id, $3));
+  $$ = A_VarDecl_Scalar($1->pos, $1);
 }
-| ID LB NUM RB COLON Type
+| VarDeclArray
 {
-  $$ = A_VarDecl_Array($1->pos, A_VarDeclArray($1->pos, $1->id, $3->num, $6));
-}
-| ID
-{
-  $$ = A_VarDecl_Scalar($1->pos, A_VarDeclScalar($1->pos, $1->id, nullptr));
-}
-| ID LB NUM RB
-{
-  $$ = A_VarDecl_Array($1->pos, A_VarDeclArray($1->pos, $1->id, $3->num, nullptr));
+  $$ = A_VarDecl_Array($1->pos, $1);
 }
 ;
+
 //12
-// A_varDefScalar A_VarDefScalar(A_pos pos, char* id, A_type type, A_rightVal val);
-// A_varDefArray A_VarDefArray(A_pos pos, char* id, int len, A_type type, A_rightValList vals);
 // A_varDef A_VarDef_Scalar(A_pos pos, A_varDefScalar defScalar);
 // A_varDef A_VarDef_Array(A_pos pos, A_varDefArray defArray);
 VarDef:
-ID COLON Type ASSIGN RightVal
+VarDefScalar
 {
-  $$ = A_VarDef_Scalar($1->pos, A_VarDefScalar($1->pos, $1->id, $3, $5));
+  $$ = A_VarDef_Scalar($1->pos, $1);
 }
-| ID ASSIGN RightVal
+| VarDefArray
 {
-  $$ = A_VarDef_Scalar($1->pos, A_VarDefScalar($1->pos, $1->id, nullptr, $3));
-}
-| ID LB NUM RB COLON Type ASSIGN RightValList
-{
-  $$ = A_VarDef_Array($1->pos, A_VarDefArray($1->pos, $1->id, $3->num, $6, $8));
-}
-| ID LB NUM RB ASSIGN RightValList
-{
-  $$ = A_VarDef_Array($1->pos, A_VarDefArray($1->pos, $1->id, $3->num, nullptr, $5));
+  $$ = A_VarDef_Array($1->pos, $1);
 }
 ;
 
@@ -396,19 +379,19 @@ BoolExpr:
 ArithBiOpExpr:
   ArithExpr ADD ArithExpr
 {
-  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_add, $1, $3));
+  $$ = A_ArithBiOpExpr($1->pos, A_add, $1, $3);
 }
 | ArithExpr SUB ArithExpr
 {
-  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_sub, $1, $3));
+  $$ = A_ArithBiOpExpr($1->pos, A_sub, $1, $3);
 }
 | ArithExpr MUL ArithExpr
 {
-  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_mul, $1, $3));
+  $$ = A_ArithBiOpExpr($1->pos, A_mul, $1, $3);
 }
 | ArithExpr DIV ArithExpr
 {
-  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_div, $1, $3));
+  $$ = A_ArithBiOpExpr($1->pos, A_div, $1, $3);
 }
 ;
 
@@ -440,13 +423,32 @@ ID LP RightValList RP
 // A_indexExpr A_NumIndexExpr(A_pos pos, int num);
 // A_indexExpr A_IdIndexExpr(A_pos pos, char* id);
 IndexExpr:
+NUM
+{
+  $$ = A_NumIndexExpr($1->pos, $1->num);
+}
+| ID
+{
+  $$ = A_IdIndexExpr($1->pos, $1->id);
+}
+;
+
 //19
 // A_arrayExpr A_ArrayExpr(A_pos pos, A_leftVal arr, A_indexExpr idx);
 ArrayExpr:
-
+LeftVal LB IndexExpr RB
+{
+  $$ = A_ArrayExpr($1->pos, $1, $3);
+}
+;
 //20
 // A_memberExpr A_MemberExpr(A_pos pos, A_leftVal structId, char* memberId);
 MemberExpr:
+LeftVal DOT ID
+{
+  $$ = A_MemberExpr($1->pos, $1, $3->id);
+}
+;
 //21
 // A_boolUnit A_ComExprUnit(A_pos pos, A_comExpr comExpr);
 // A_boolUnit A_BoolExprUnit(A_pos pos, A_boolExpr boolExpr);
@@ -478,6 +480,7 @@ BoolExpr AND BoolExpr
   $$ = A_BoolBiOpExpr($1->pos, A_or, $1, $3);
 }
 ;
+
 //23
 // A_boolUOpExpr A_BoolUOpExpr(A_pos pos, A_boolUOp op, A_boolUnit cond);
 BoolUOpExpr:
@@ -555,44 +558,86 @@ RightVal COMMA RightValList{
 //28
 //A_varDef A_VarDef_Scalar(A_pos pos, A_varDefScalar defScalar);
 VarDefScalar:
+ID COLON Type ASSIGN RightVal
+{
+  $$ = A_VarDefScalar($1->pos, $1->id, $3, $5);
+}
+| ID ASSIGN RightVal
+{
+  $$ = A_VarDefScalar($1->pos, $1->id, nullptr, $3);
+}
+;
+
 //29
 //A_varDef A_VarDef_Array(A_pos pos, A_varDefArray defArray);
 VarDefArray:
+ID LB NUM RB COLON Type ASSIGN RightValList
+{
+  $$ = A_VarDefArray($1->pos, $1->id, $3->num, $6, $8);
+}
+| ID LB NUM RB ASSIGN RightValList
+{
+  $$ = A_VarDefArray($1->pos, $1->id, $3->num, nullptr, $6);
+}
+;
+
 //30
 //A_varDeclScalar A_VarDeclScalar(A_pos pos, char* id, A_type type);
 VarDeclScalar:
+ID COLON Type
+{
+  $$ = A_VarDeclScalar($1->pos, $1->id, $3);
+}
+| ID
+{
+  $$ =  A_VarDeclScalar($1->pos, $1->id, nullptr);
+}
+;
+
 //31
 //A_varDeclArray A_VarDeclArray(A_pos pos, char* id, int len, A_type type);
 VarDeclArray:
+ID LB NUM RB COLON Type
+{
+  $$ = A_VarDeclArray($1->pos, $1->id, $3->num, $6);
+}
+| ID LB NUM RB
+{
+  $$ = A_VarDeclArray($1->pos, $1->id, $3->num, nullptr);
+}
+;
+
 //32
 // A_varDeclList A_VarDeclList(A_varDecl head, A_varDeclList tail);
-VarDeclList: VarDecl COMMA VarDeclList
+VarDeclList: 
+VarDecl COMMA VarDeclList
 {
-  $$ = A_VarDeclList($1->pos, $1, $3);
+  $$ = A_VarDeclList($1, $3);
 }
 | VarDecl
 {
-  $$ = A_VarDeclList($1->pos, $1, nullptr);
+  $$ = A_VarDeclList($1, nullptr);
 }
 ;
 
 //33
 // A_paramDecl A_ParamDecl(A_varDeclList varDecls);
-ParamDecl: VarDecl COMMA VarDeclList
+ParamDecl: VarDeclList
 {
-  $$ = A_ParamDecl($1->pos, $1, $3);
+  $$ = A_ParamDecl($1);
 } 
 ;
 
 //34
 // A_fnDecl A_FnDecl(A_pos pos, char* id, A_paramDecl paramDecl, A_type type);
-FnDecl: FN ID LP ParamDecl RP 
+FnDecl: 
+FN ID LP ParamDecl RP 
 {
-  $$ = A_FnDecl($1->pos, $2, $4, nullptr); //无返回值
+  $$ = A_FnDecl($1, $2->id, $4, nullptr); //无返回值
 }
 | FN ID LP ParamDecl RP RA Type
 {
-  $$ = A_FnDecl($1->pos, $2, $4, $6); //有返回值
+  $$ = A_FnDecl($1, $2->id, $4, $7); //有返回值
 }
 ;
 
@@ -607,22 +652,67 @@ FnDecl: FN ID LP ParamDecl RP
 // A_codeBlockStmt A_BlockContinueStmt(A_pos pos);
 // A_codeBlockStmt A_BlockBreakStmt(A_pos pos);
 CodeBlockStmt:
+VarDeclStmt
+{
+  $$ = A_BlockVarDeclStmt($1->pos, $1);
+}
+| AssignStmt
+{
+  $$ = A_BlockAssignStmt($1->pos, $1);
+}
+| CallStmt
+{
+  $$ = A_BlockCallStmt($1->pos, $1);
+}
+| IfStmt
+{
+  $$ = A_BlockIfStmt($1->pos, $1);
+}
+| WhileStmt
+{
+  $$ = A_BlockWhileStmt($1->pos, $1);
+}
+| ReturnStmt
+{
+  $$ = A_BlockReturnStmt($1->pos, $1);
+}
+| CONTINUE SEMI
+{
+  $$ = A_BlockContinueStmt($1); //CONTINUE is pos
+}
+| BREAK SEMI
+{
+  $$ = A_BlockBreakStmt($1); //BREAK is pos
+}
+| SEMI
+{
+  $$ = A_BlockNullStmt($1); //SEMI is pos
+}
+;
+
+
 //36
 // A_ifStmt A_IfStmt(A_pos pos, A_boolExpr boolExpr, A_codeBlockStmtList ifStmts, A_codeBlockStmtList elseStmts);
 IfStmt:
 IF LP BoolExpr RP CodeBlockStmtList ELSE CodeBlockStmtList
 {
-  $$ = A_ifStmt($1->pos, $3, $5, $7); //with else
+  $$ = A_IfStmt($1, $3, $5, $7); //with else
 }
 | IF LP BoolExpr RP CodeBlockStmtList
 {
-  $$ = A_ifStmt($1->pos, $3, $5, nullptr); //no else
+  $$ = A_IfStmt($1, $3, $5, nullptr); //no else
 }
 ;
 
 //37
 // A_whileStmt A_WhileStmt(A_pos pos, A_boolExpr boolExpr, A_codeBlockStmtList whileStmts);
 WhileStmt:
+WHILE LP BoolExpr RP CodeBlockStmtList
+{
+  $$ = A_WhileStmt($1, $3, $5); //WHILE is pos
+}
+;
+
 //38
 // A_callStmt A_CallStmt(A_pos pos, A_fnCall fnCall);
 CallStmt:
@@ -630,9 +720,21 @@ FnCall SEMI
 {
   $$ = A_CallStmt($1->pos, $1);
 }
+;
+
 //39
 // A_returnStmt A_ReturnStmt(A_pos pos, A_rightVal retVal);
 ReturnStmt:
+RET RightVal SEMI
+{
+  $$ = A_ReturnStmt($1, $2); //RET is pos
+}
+| RET SEMI
+{
+  $$ = A_ReturnStmt($1, nullptr); //RET is pos
+}
+;
+
 //40
 // A_codeBlockStmtList A_CodeBlockStmtList(A_codeBlockStmt head, A_codeBlockStmtList tail);
 CodeBlockStmtList:
@@ -644,6 +746,7 @@ CodeBlockStmt CodeBlockStmtList
 {
   $$ = A_CodeBlockStmtList($1, nullptr);
 }
+;
 
 
 
