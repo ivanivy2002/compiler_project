@@ -24,7 +24,12 @@ An expression is a composd of identifiers, values,  and operators, e.g., 1+2, a*
 
 ```
 arithExpr := arithExpr arithBiOp arithExpr | exprUnit
-exprUnit :=  num | id | < ( > arithExpr < ) > | fnCall | leftVal < [ > id | num < ] > | leftVal < . > id | arithUOp exprUnit
+exprUnit :=  num 
+| id | < ( > arithExpr < ) > 
+| fnCall 
+| leftVal < [ > id | num < ] > 
+| leftVal < . > id 
+| arithUOp exprUnit
 arithBiOp := < + > | < - > | < * > | < / >
 arithUOp := < - >
 ```
@@ -32,10 +37,14 @@ arithUOp := < - >
 **Condition Expressions**
 
 ```
-boolExpr := boolExpr boolBiOp boolExpr | boolUnit
-boolUnit := exprUnit comOp exprUnit | < ( > boolExpr < ) > | boolUOp boolUnit // we restrict the operands of comparison operators to be exprUnit instead of rightVal to avoid confusing the precedence.
+boolExpr := boolExpr boolBiOp boolExpr 
+| boolUnit
+
+boolUnit := comOpExpr
+| < ( > boolExpr < ) > | boolUOp boolUnit // we restrict the operands of comparison operators to be exprUnit instead of rightVal to avoid confusing the precedence.
 boolBiOp := < && > | < || >
 boolUOp := < ! >
+comOpExpr := exprUnit comOp exprUnit 
 comOp := < > > | < < > | < >= > | < <= > | < == > | < != >
 ```
 
@@ -44,14 +53,20 @@ We restrict neither the left value nor right value can be assignments.
 
 ```
 assignStmt := leftVal < = > rightVal < ; >  
-leftVal := id | leftVal < [ > id | num < ] > | leftVal < . > id
+leftVal := id 
+| arrayExpr
+| memberExpr
 rightVal := arithExpr | boolExpr
+rightValList := rightVal (< , > rightVal)* | ϵ
+
+arrayExpr := leftVal < [ > id | num < ] > 
+memberExpr := leftVal < . > id
 ```
 
 **Function Call**
 
 ```
-fnCall := id < ( > rightVal (< , > rightVal)* | ϵ < ) >
+fnCall := id < ( > rightValList < ) >
 ```
 
 ### Variable Declarations
@@ -74,9 +89,14 @@ let d[10]:int = {0}; // declear a variable of integer array and initialize it wi
 The grammar is defined as follows.
  ```
 varDeclStmt := < let > (varDecl | varDef) < ; >   
-varDecl := id < : > type |  id < [ > num < ] >< : > type | id |  id < [ > num < ] >
-varDef :=  id < : > type < = > rightVal | id < = > rightVal  //primitive type
-         | id < [ > num < ] >< : > type < = > < { > rightVal (< , > rightVal)* | ϵ < } > | id < [ > num < ] > < = > < { > rightVal (< , > rightVal)* | ϵ < } > //array
+varDecl := id < : > type 
+|  id < [ > num < ] >< : > type 
+| id 
+|  id < [ > num < ] >
+varDef :=  id < : > type < = > rightVal 
+| id < = > rightVal  //primitive type
+         | id < [ > num < ] >< : > type < = > < { > rightValList < } > 
+         | id < [ > num < ] > < = > < { > rightValList < } > //array
 type := nativeType | structType
 nativeType := < int >
 structType := id

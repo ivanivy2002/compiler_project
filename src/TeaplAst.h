@@ -498,6 +498,7 @@ A_indexExpr A_NumIndexExpr(A_pos pos, int num);
 A_indexExpr A_IdIndexExpr(A_pos pos, char* id);
 A_arrayExpr A_ArrayExpr(A_pos pos, A_leftVal arr, A_indexExpr idx);
 A_memberExpr A_MemberExpr(A_pos pos, A_leftVal structId, char* memberId);
+
 A_exprUnit A_NumExprUnit(A_pos pos, int num);
 A_exprUnit A_IdExprUnit(A_pos pos, char* id);
 A_exprUnit A_ArithExprUnit(A_pos pos, A_arithExpr arithExpr);
@@ -505,6 +506,7 @@ A_exprUnit A_CallExprUnit(A_pos pos, A_fnCall callExpr);
 A_exprUnit A_ArrayExprUnit(A_pos pos, A_arrayExpr arrayExpr);
 A_exprUnit A_MemberExprUnit(A_pos pos, A_memberExpr memberExpr);
 A_exprUnit A_ArithUExprUnit(A_pos pos, A_arithUExpr arithUExpr);
+
 A_arithBiOpExpr A_ArithBiOpExpr(A_pos pos, A_arithBiOp op, A_arithExpr left, A_arithExpr right);
 A_arithUExpr A_ArithUExpr(A_pos pos, A_arithUOp op, A_exprUnit expr);
 A_arithExpr A_ArithBiOp_Expr(A_pos pos, A_arithBiOpExpr arithBiOpExpr);
@@ -537,6 +539,7 @@ A_varDeclList A_VarDeclList(A_varDecl head, A_varDeclList tail);
 A_structDef A_StructDef(A_pos pos, char* id, A_varDeclList varDecls);
 A_fnDecl A_FnDecl(A_pos pos, char* id, A_paramDecl paramDecl, A_type type);
 A_paramDecl A_ParamDecl(A_varDeclList varDecls);
+
 A_codeBlockStmtList A_CodeBlockStmtList(A_codeBlockStmt head, A_codeBlockStmtList tail);
 A_fnDef A_FnDef(A_pos pos, A_fnDecl fnDecl, A_codeBlockStmtList stmts);
 A_ifStmt A_IfStmt(A_pos pos, A_boolExpr boolExpr, A_codeBlockStmtList ifStmts, A_codeBlockStmtList elseStmts);
@@ -552,7 +555,9 @@ A_codeBlockStmt A_BlockWhileStmt(A_pos pos, A_whileStmt whileStmt);
 A_codeBlockStmt A_BlockReturnStmt(A_pos pos, A_returnStmt returnStmt);
 A_codeBlockStmt A_BlockContinueStmt(A_pos pos);
 A_codeBlockStmt A_BlockBreakStmt(A_pos pos);
+
 A_fnDeclStmt A_FnDeclStmt(A_pos pos, A_fnDecl fnDecl);
+//program
 A_programElement A_ProgramNullStmt(A_pos pos);
 A_programElement A_ProgramVarDeclStmt(A_pos pos, A_varDeclStmt varDeclStmt);
 A_programElement A_ProgramStructDef(A_pos pos, A_structDef structDef);

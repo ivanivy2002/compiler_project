@@ -46,8 +46,9 @@ int calc(char *s, int len);
     "||"   { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return OR; }
     "!"    { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return NOT; }
     // "%"    { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return MOD; }
-    // 赋值 1
+    // 赋值，声明
     "="    { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return ASSIGN; }
+    ":"    { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return COLON;}
     // 连接分隔符 10
     ";"    { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return SEMI; }
     ","    { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return COMMA; }
@@ -65,11 +66,11 @@ int calc(char *s, int len);
         col+=yyleng;
         return NUM;
     }
-    [0-9]+ {
-        yylval.tokenNum = A_TokenNum(A_Pos(line, col), calc(yytext, yyleng));
-        col+=yyleng;
-        return UNUM;
-    }
+    // [0-9]+ {
+    //     yylval.tokenNum = A_TokenNum(A_Pos(line, col), calc(yytext, yyleng));
+    //     col+=yyleng;
+    //     return UNUM;
+    // }
     [a-zA-Z][a-zA-Z0-9]* {
         yylval.tokenId = A_TokenId(A_Pos(line, col), strdup(yytext));
         col+=yyleng;
