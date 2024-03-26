@@ -16,6 +16,7 @@ extern int  yywrap();
 // TODO:
 // your parser
 
+
 %union {
   //这里直接copy TeaplAst.h里的定义
   // 43个
@@ -111,7 +112,34 @@ extern int  yywrap();
 // %token <tokenNum> UNUM
 %token <tokenId> ID
 
-// 43个类型，去除pos, tokenId，tokenNum
+%left IF ELSE WHILE
+%left SEMI
+%left COMMA
+%left DOT
+%left ASSIGN
+
+%left ID
+%left ADD SUB MUL DIV
+%left EQ NE LT LE GT GE
+%left AND OR 
+%right NOT
+// %right NEG
+
+%right LB
+%left RB
+%right LP
+%left RP
+// 为了解决冲突: 
+// 21 FnDeclStmt: FnDecl SEMI .
+// 83 CodeBlockStmt: SEMI .
+%left LET
+%left STRUCT
+%right FN
+
+
+
+
+// 43个类型, 去除pos, tokenId, tokenNum
 
 // %type <pos> Pos
 %type <program> Program //1
@@ -174,7 +202,8 @@ Program: ProgramElementList
 
 //2
 // A_programElementList A_ProgramElementList(A_programElement head, A_programElementList tail);
-ProgramElementList: ProgramElement ProgramElementList
+ProgramElementList: 
+ProgramElement ProgramElementList
 {
   $$ = A_ProgramElementList($1, $2);
 }
@@ -297,9 +326,9 @@ FnDeclStmt: FnDecl SEMI
 //9
 // A_fnDef A_FnDef(A_pos pos, A_fnDecl fnDecl, A_codeBlockStmtList stmts);
 FnDef:
-  FnDecl CodeBlockStmtList
+  FnDecl LC CodeBlockStmtList RC
 {
-  $$ = A_FnDef($1->pos, $1, $2);
+  $$ = A_FnDef($1->pos, $1, $3);
 }
 ;
 
@@ -436,6 +465,7 @@ NUM
 //19
 // A_arrayExpr A_ArrayExpr(A_pos pos, A_leftVal arr, A_indexExpr idx);
 ArrayExpr:
+// ID LB IndexExpr RB
 LeftVal LB IndexExpr RB
 {
   $$ = A_ArrayExpr($1->pos, $1, $3);
@@ -554,6 +584,11 @@ RightVal COMMA RightValList{
 | RightVal{
   $$ = A_RightValList($1, nullptr);
 }
+| 
+{
+  $$ = nullptr;
+}
+// TODO: RightVal 可以为空吗？
 ;
 //28
 //A_varDef A_VarDef_Scalar(A_pos pos, A_varDefScalar defScalar);
@@ -571,9 +606,10 @@ ID COLON Type ASSIGN RightVal
 //29
 //A_varDef A_VarDef_Array(A_pos pos, A_varDefArray defArray);
 VarDefArray:
-ID LB NUM RB COLON Type ASSIGN RightValList
+// a[i] :int = {1, 2, 3}
+ID LB NUM RB COLON Type ASSIGN LC RightValList RC
 {
-  $$ = A_VarDefArray($1->pos, $1->id, $3->num, $6, $8);
+  $$ = A_VarDefArray($1->pos, $1->id, $3->num, $6, $9);
 }
 | ID LB NUM RB ASSIGN RightValList
 {
@@ -626,6 +662,10 @@ ParamDecl: VarDeclList
 {
   $$ = A_ParamDecl($1);
 } 
+|
+{
+  $$ = nullptr;
+}
 ;
 
 //34
@@ -694,22 +734,22 @@ VarDeclStmt
 //36
 // A_ifStmt A_IfStmt(A_pos pos, A_boolExpr boolExpr, A_codeBlockStmtList ifStmts, A_codeBlockStmtList elseStmts);
 IfStmt:
-IF LP BoolExpr RP CodeBlockStmtList ELSE CodeBlockStmtList
+IF LP BoolExpr RP LC CodeBlockStmtList RC ELSE LC CodeBlockStmtList RC //TODO: 这里的ELSE 后面的CodeBlockStmtList 应该要加上{}?
 {
-  $$ = A_IfStmt($1, $3, $5, $7); //with else
+  $$ = A_IfStmt($1, $3, $6, $10); //with else
 }
-| IF LP BoolExpr RP CodeBlockStmtList
+| IF LP BoolExpr RP LC CodeBlockStmtList RC
 {
-  $$ = A_IfStmt($1, $3, $5, nullptr); //no else
+  $$ = A_IfStmt($1, $3, $6, nullptr); //no else
 }
 ;
 
 //37
 // A_whileStmt A_WhileStmt(A_pos pos, A_boolExpr boolExpr, A_codeBlockStmtList whileStmts);
 WhileStmt:
-WHILE LP BoolExpr RP CodeBlockStmtList
+WHILE LP BoolExpr RP LC CodeBlockStmtList RC
 {
-  $$ = A_WhileStmt($1, $3, $5); //WHILE is pos
+  $$ = A_WhileStmt($1, $3, $6); //WHILE is pos
 }
 ;
 
@@ -729,10 +769,11 @@ RET RightVal SEMI
 {
   $$ = A_ReturnStmt($1, $2); //RET is pos
 }
-| RET SEMI
-{
-  $$ = A_ReturnStmt($1, nullptr); //RET is pos
-}
+// TODO: 在RightVal中加入空，这里就不再加入空了
+// | RET SEMI
+// {
+//   $$ = A_ReturnStmt($1, nullptr); //RET is pos
+// }
 ;
 
 //40
@@ -742,6 +783,11 @@ CodeBlockStmt CodeBlockStmtList
 {
   $$ = A_CodeBlockStmtList($1, $2);
 }
+// TODO: 认为这里应该直接接空?
+// | 
+// {
+//   $$ = nullptr;
+// }
 | CodeBlockStmt
 {
   $$ = A_CodeBlockStmtList($1, nullptr);

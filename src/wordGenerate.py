@@ -28,62 +28,32 @@ for i in range(len(cap)):
     print(f"{cap[i]}:")
     
     
-A_program 
-      |--A_programElement 
-              |--A_fnDef 
-                      |--A_fnDecl fn main(
-                              |--A_paramDecl )->
-                      |--A_type int{
+#     /* [0-9]+ {
+#      yylval.tokenNum = A_TokenNum(A_Pos(line, col), calc(yytext, yyleng));
+#      col+=yyleng;
+#      return UNUM;
+#     }
+# */
 
-                      |--A_codeBlockStmt 
-                              |--A_callStmt 
-                                      |--A_fnCall _sysy_starttime(
-                                      |--A_rightVal 
-                                              |--A_arithExpr 
-                                                      |--A_exprUnit 4);
 
-                      |--A_codeBlockStmt 
-                              |--A_varDeclStmt let 
-                                      |--A_varDef 
-                                              |--A_varDefScalar i:
-                                              |--A_type int = 
-                                              |--A_rightVal 
-                                                      |--A_arithExpr 
-                                                              |--A_exprUnit 0;
-
-                      |--A_codeBlockStmt 
-                              |--A_varDeclStmt let 
-                                      |--A_varDef 
-                                              |--A_varDefScalar sum:
-                                              |--A_type int = 
-                                              |--A_rightVal 
-                                                      |--A_arithExpr 
-                                                              |--A_exprUnit 0;
-
-                      |--A_codeBlockStmt 
-                              |--A_assignStmt 
-                                      |--A_leftVal i = 
-                                      |--A_rightVal 
-                                              |--A_arithExpr 
-                                                      |--A_exprUnit 0;
-
-                      |--A_codeBlockStmt 
-                              |--A_callStmt 
-                                      |--A_fnCall putint(
-                                      |--A_rightVal 
-                                              |--A_arithExpr 
-                                                      |--A_exprUnit sum);
-
-                      |--A_codeBlockStmt 
-                              |--A_callStmt 
-                                      |--A_fnCall _sysy_stoptime(
-                                      |--A_rightVal 
-                                              |--A_arithExpr 
-                                                      |--A_exprUnit 19);
-
-                      |--A_codeBlockStmt 
-                              |--A_returnStmt ret 
-                              |--A_rightVal 
-                                      |--A_arithExpr 
-                                              |--A_exprUnit 0;
-}
+# Starting parse
+# Entering state 0
+# Reading a token: Next token is token FN ()
+# Shifting token FN ()
+# Entering state 3
+# Reading a token: Next token is token ID ()
+# Shifting token ID ()
+# Entering state 21
+# Reading a token: Next token is token LP ()
+# Shifting token LP ()
+# Entering state 49
+# Reading a token: Next token is token RP ()
+# syntax error
+# Error: popping token LP ()
+# Stack now 0 3 21
+# Error: popping token ID ()
+# Stack now 0 3
+# Error: popping token FN ()
+# Stack now 0
+# Cleanup: discarding lookahead token RP ()
+# Stack now 0
