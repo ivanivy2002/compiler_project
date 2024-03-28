@@ -59,7 +59,7 @@ int calc(char *s, int len);
     col+=yyleng;
     return NUM;
 }
-[a-zA-Z]([a-zA-Z0-9]|[_])* {
+[a-zA-Z_]([a-zA-Z0-9_])* {
     yylval.tokenId = A_TokenId(A_Pos(line, col), strdup(yytext));
     col+=yyleng;
     return ID;

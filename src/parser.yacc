@@ -112,21 +112,32 @@ extern int  yywrap();
 // %token <tokenNum> UNUM
 %token <tokenId> ID
 
-%left IF ELSE WHILE
 %left SEMI
 %left COMMA
-%left DOT
-%left ASSIGN
+%left WHILE
+%left IF 
+%left ELSE 
 
 %left ID
-%left ADD SUB MUL DIV
+%left ASSIGN
+
+%left OR 
+%left AND 
+
 %left EQ NE LT LE GT GE
-%left AND OR 
+
+
+%left ADD SUB 
+%left MUL DIV
+
 %right NOT
 // %right NEG
 
 %right LB
 %left RB
+
+%left DOT
+
 %right LP
 %left RP
 // 为了解决冲突: 
@@ -247,13 +258,13 @@ ProgramElement:
 // A_arithExpr A_ArithBiOp_Expr(A_pos pos, A_arithBiOpExpr arithBiOpExpr);
 // A_arithExpr A_ExprUnit(A_pos pos, A_exprUnit exprUnit);
 ArithExpr: //修改了原来给出的示例
-  ArithBiOpExpr //->15
-{
-  $$ = A_ArithBiOp_Expr($1->pos, $1);
-}
-| ExprUnit
+ExprUnit
 {
   $$ = A_ExprUnit($1->pos, $1);
+}
+| ArithBiOpExpr //->15
+{
+  $$ = A_ArithBiOp_Expr($1->pos, $1);
 }
 ;
 
@@ -385,6 +396,10 @@ RightVal:
 | BoolExpr
 {
   $$ = A_BoolExprRVal($1->pos, $1);
+}
+|
+{
+  $$ = nullptr; // 解决 "RET;"
 }
 ;
 
@@ -584,10 +599,10 @@ RightVal COMMA RightValList{
 | RightVal{
   $$ = A_RightValList($1, nullptr);
 }
-| 
-{
-  $$ = nullptr;
-}
+// | 
+// {
+//   $$ = nullptr;
+// }
 // TODO: RightVal 可以为空吗？
 ;
 //28
@@ -654,6 +669,10 @@ VarDecl COMMA VarDeclList
 {
   $$ = A_VarDeclList($1, nullptr);
 }
+|
+{
+  $$ = nullptr;
+}
 ;
 
 //33
@@ -662,23 +681,24 @@ ParamDecl: VarDeclList
 {
   $$ = A_ParamDecl($1);
 } 
-|
-{
-  $$ = nullptr;
-}
+// |
+// {
+//   $$ = nullptr;
+// }
 ;
 
 //34
 // A_fnDecl A_FnDecl(A_pos pos, char* id, A_paramDecl paramDecl, A_type type);
 FnDecl: 
-FN ID LP ParamDecl RP 
-{
-  $$ = A_FnDecl($1, $2->id, $4, nullptr); //无返回值
-}
-| FN ID LP ParamDecl RP RA Type
+FN ID LP ParamDecl RP RA Type
 {
   $$ = A_FnDecl($1, $2->id, $4, $7); //有返回值
 }
+| FN ID LP ParamDecl RP 
+{
+  $$ = A_FnDecl($1, $2->id, $4, nullptr); //无返回值
+}
+
 ;
 
 //35
