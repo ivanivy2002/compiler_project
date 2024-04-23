@@ -4,11 +4,10 @@ struct MyStruct {
 }
 
 fn main(a:int, b:int)->int{
-    let a:int;
-    let b:int = 0;
     let c:MyStruct;
     c.node = 1;
     c.len = 3;
+    c.tail = 7;
     ret a - b;
 }
 
@@ -21,6 +20,5 @@ fn foo(a:int, b:int)->int{
 
 /*
     key:
-    line 7, col 9: local variables dplicates with function params.
+    line 10, col 5: member 'tail' is not defined.
 */
-

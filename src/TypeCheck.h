@@ -11,7 +11,7 @@
 // token id to token type, including function name to return type
 typedef struct tc_type_* tc_type;
 typedef std::unordered_map<string, tc_type> typeMap; 
-
+// typedef std::unordered_map<string, aA_type> varMap;
 // func name to params
 typedef std::unordered_map<string, vector<aA_varDecl>*> paramMemberMap; 
 
@@ -39,3 +39,9 @@ struct tc_type_{
     aA_type type;
     uint isVarArrFunc; // 0 for scalar, 1 for array, 2 for function
 };
+
+
+void enterScope();
+void leaveScope();
+tc_type check_RightVal(std::ostream &out, aA_rightVal rv);
+tc_type get_VarDecl(aA_varDecl vdecl);

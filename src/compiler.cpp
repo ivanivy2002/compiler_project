@@ -38,6 +38,8 @@ int main(int argc, char * argv[]) {
     print_aA_Program(aroot, ASTStream);
     ASTStream.close();
 
+    cout << "Processing file: " << argv[1] << endl;
+
     check_Prog(std::cout, aroot);
 
     return 0;
