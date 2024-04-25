@@ -267,7 +267,7 @@ void check_VarDecl(std::ostream& out, aA_varDeclStmt vd)
     if (!vd)
         return;
     string name;
-    typeMap& currentScope = scopeStack.back();  // 使用当前作用域的typeMap
+    typeMap &currentScope = scopeStack.back(); // 使用当前作用域的typeMap
     // paramMemberMap& currentParam = paramStack.back();  // 使用当前作用域的paramMemberMap
     lenMap& currentArrayLen = array2Len.back();  // 使用当前作用域的lenMap
     if (vd->kind == A_varDeclStmtType::A_varDeclKind){
@@ -275,7 +275,6 @@ void check_VarDecl(std::ostream& out, aA_varDeclStmt vd)
         aA_varDecl vdecl = vd->u.varDecl;
         if(vdecl->kind == A_varDeclType::A_varDeclScalarKind){
             name = *vdecl->u.declScalar->id;
-            DEBUG_PRINT("varDecl: " << name << " " << vdecl->pos->line << " " << vdecl->pos->col << " " << vdecl->u.declScalar->type->type);
             /* fill code here: in scope detect */
             if (currentScope.find(name) != currentScope.end()) {
                 error_print(out, vdecl->pos, "Scalar '" + name + "' already declared.");
