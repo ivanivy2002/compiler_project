@@ -4,8 +4,13 @@
 
 #ifdef DEBUG_TYPECHECK
 #define DEBUG_PRINT(x) std::cout << "DEBUG: " << x << std::endl;
+#define DEBUG_LIST_SCOPE() listScope();
+#define DEBUG_LIST_PARAM()               \
+    std::cout << "PARAM: " << std::endl; \
+    listParam();
 #else
 #define DEBUG_PRINT(x)
+#define DEBUG_LIST_SCOPE()
 #endif
 
 //global tabels
@@ -22,6 +27,8 @@ std::vector<typeMap> scopeStack; // 作用域栈
 std::vector<paramMemberMap> paramStack; // 作用域的参数栈
 paramMemberMap func2Param; // function name to params
 paramMemberMap struct2Members; // struct name to members
+std::vector<lenMap> array2Len; // array name to length
+BoolMap funcDefined; // function name to defined
 
 void enterScope() {
     if (!scopeStack.empty()) {
@@ -34,6 +41,11 @@ void enterScope() {
     } else {
         paramStack.push_back(paramMemberMap());  // 若栈为空，则推入一个新的空paramMemberMap
     }
+    if (!array2Len.empty()) {
+        array2Len.push_back(array2Len.back());  // 复制当前作用域的lenMap到新作用域
+    } else {
+        array2Len.push_back(lenMap());  // 若栈为空，则推入一个新的空lenMap
+    }
 }
 
 void leaveScope() {
@@ -43,9 +55,63 @@ void leaveScope() {
     if (!paramStack.empty()) {
         paramStack.pop_back();  // 离开当前作用域，弹出栈顶
     }
+    if (!array2Len.empty()) {
+        array2Len.pop_back();  // 离开当前作用域，弹出栈顶
+    }
 }
 
+void listScope(){
+    typeMap& currentScope = scopeStack.back();  // 使用当前作用域的typeMap
+    for(auto it = currentScope.begin(); it != currentScope.end(); it++){
+        std::cout << it->first << " : ";
+        switch (it->second->type->type)
+        {
+        case A_dataType::A_nativeTypeKind:
+            switch (it->second->type->u.nativeType)
+            {
+            case A_nativeType::A_intTypeKind:
+                std::cout << "int";
+                break;
+            default:
+                break;
+            }
+            break;
+        case A_dataType::A_structTypeKind:
+            std::cout << *(it->second->type->u.structType);
+            break;
+        default:
+            break;
+        }
+        switch(it->second->isVarArrFunc){
+            case 0:
+                std::cout << " scalar";
+                break;
+            case 1:
+                std::cout << " array";
+                break;
+            case 2:
+                std::cout << " function";
+                break;
+        }
+        std::cout << std::endl;
+    }
+}
 
+void listParam(){
+    paramMemberMap& currentParam = paramStack.back();  // 使用当前作用域的paramMemberMap
+    for(auto it = currentParam.begin(); it != currentParam.end(); it++){
+        std::cout << it->first << " : ";
+        for(auto ele : *it->second){
+            std::cout << ele->pos->line << " " << ele->pos->col << " ";
+            if(ele->kind == A_varDeclType::A_varDeclScalarKind){
+                std::cout << "scalar " << ele->u.declScalar->type->type;
+            }else if(ele->kind == A_varDeclType::A_varDeclArrayKind){
+                std::cout << "array " << ele->u.declArray->type->type << "[" << ele->u.declArray->len << "]";
+            }
+            std::cout << std::endl;
+        }
+    }
+}
 
 // private util functions
 void error_print(std::ostream& out, A_pos p, string info)
@@ -193,6 +259,8 @@ void check_Prog(std::ostream& out, aA_program p)
     return;
 }
 
+
+
 // 检查变量声明
 void check_VarDecl(std::ostream& out, aA_varDeclStmt vd)
 {
@@ -200,13 +268,14 @@ void check_VarDecl(std::ostream& out, aA_varDeclStmt vd)
         return;
     string name;
     typeMap& currentScope = scopeStack.back();  // 使用当前作用域的typeMap
-    paramMemberMap& currentParam = paramStack.back();  // 使用当前作用域的paramMemberMap
+    // paramMemberMap& currentParam = paramStack.back();  // 使用当前作用域的paramMemberMap
+    lenMap& currentArrayLen = array2Len.back();  // 使用当前作用域的lenMap
     if (vd->kind == A_varDeclStmtType::A_varDeclKind){
         // decl only
         aA_varDecl vdecl = vd->u.varDecl;
-        DEBUG_PRINT("varDecl: " << *vdecl->u.declScalar->id << " " << vdecl->pos->line << " " << vdecl->pos->col << " " << vdecl->kind);
         if(vdecl->kind == A_varDeclType::A_varDeclScalarKind){
             name = *vdecl->u.declScalar->id;
+            DEBUG_PRINT("varDecl: " << name << " " << vdecl->pos->line << " " << vdecl->pos->col << " " << vdecl->u.declScalar->type->type);
             /* fill code here: in scope detect */
             if (currentScope.find(name) != currentScope.end()) {
                 error_print(out, vdecl->pos, "Scalar '" + name + "' already declared.");
@@ -214,11 +283,17 @@ void check_VarDecl(std::ostream& out, aA_varDeclStmt vd)
             } else {
                 if (vdecl->u.declScalar->type) { // 类型已指定
                     currentScope[name] = tc_Type(vdecl->u.declScalar->type, 0); // 0 表示标量
-                } else { // 类型未指定，推迟到赋值时确定
+                    if(vdecl->u.declScalar->type->type == A_structTypeKind){
+                        DEBUG_PRINT("struct type: " << *vdecl->u.declScalar->type->u.structType);
+                        DEBUG_LIST_SCOPE();
+                    }
+                } else
+                { // 类型未指定，推迟到赋值时确定
                     currentScope[name] = nullptr; // 用 nullptr 表示待推断的类型
                 }
             }
         }else if (vdecl->kind == A_varDeclType::A_varDeclArrayKind){
+            DEBUG_PRINT("varDecl: " << name << " " << vdecl->pos->line << " " << vdecl->pos->col << " " << vdecl->u.declArray->type->type <<'['<< vdecl->u.declArray->len<<"]");
             name = *vdecl->u.declArray->id;
             /* fill code here*/
             if (currentScope.find(name) != currentScope.end()) {
@@ -227,7 +302,7 @@ void check_VarDecl(std::ostream& out, aA_varDeclStmt vd)
                 currentScope[name] = tc_Type(vdecl->u.declArray->type, 1); // 1 表示数组
                 // 记录一下长度
                 if (vdecl->u.declArray->len) {
-                    currentParam[name]->push_back(vdecl);
+                    currentArrayLen[name] = vdecl->u.declArray->len;
                 }
             }
         }
@@ -241,11 +316,14 @@ void check_VarDecl(std::ostream& out, aA_varDeclStmt vd)
             if (currentScope.find(name) != currentScope.end() && currentScope[name] != nullptr) {
                 error_print(out, vdef->pos, "Variable '" + name + "' already declared.");
             } else {
-                if (vdef->u.defScalar->type) { // 类型已指定
+                tc_type rightVal = check_RightVal(out, vdef->u.defScalar->val);
+                if (vdef->u.defScalar->type) { // 类型已指定, 检查和右值是否一致
                     currentScope[name] = tc_Type(vdef->u.defScalar->type, 0); // 0 表示标量
-                } else { // 类型未指定，推迟到赋值时确定
-                    currentScope[name] = nullptr; // 用 nullptr 表示待推断的类型
-                    error_print(out, vdef->pos, "照理不应该出现这种情况");
+                    if (!comp_tc_type(currentScope[name], rightVal)) {
+                        error_print(out, vdef->pos, "Variable '" + name + "' def type mismatch.");
+                    }
+                } else { // 类型未指定，赋值时确定, 就是右值的类型
+                    currentScope[name] = rightVal; // 用 nullptr 表示待推断的类型
                 }
             }
         }else if (vdef->kind == A_varDefType::A_varDefArrayKind){
@@ -254,7 +332,26 @@ void check_VarDecl(std::ostream& out, aA_varDeclStmt vd)
             if (currentScope.find(name) != currentScope.end() && currentScope[name] != nullptr) {
                 error_print(out, vdef->pos, "Array '" + name + "' already declared.");
             } else {
-                currentScope[name] = tc_Type(vdef->u.defArray->type, 1); // 1 表示数组
+                if (vdef->u.defArray->len){
+                    currentArrayLen[name] = vdef->u.defArray->len;
+                }
+                tc_type rightVal = tc_Type(vdef->u.defArray->type, 1); // 1 表示数组
+                uint len = vdef->u.defArray->vals.size();
+                if (vdef->u.defArray->type) { // 类型已指定, 检查和右值是否一致
+                    currentScope[name] = tc_Type(vdef->u.defArray->type, 1); // 1 表示数组
+                    DEBUG_PRINT("rightVal is: " << rightVal->isVarArrFunc<<" "<<rightVal->type->type << " " << len);
+                    DEBUG_PRINT("currentScope[name] is: " << currentScope[name]->isVarArrFunc<<" "<<currentScope[name]->type->type << " " << currentArrayLen[name]);
+                    if (!comp_tc_type(currentScope[name], rightVal))
+                    {
+                        error_print(out, vdef->pos, "Array '" + name + "' def type mismatch.");
+                    }
+                    if(currentArrayLen.find(name) != currentArrayLen.end() && currentArrayLen[name] < len){
+                        error_print(out, vdef->pos, "Array '" + name + "' def length mismatch.");
+                    }
+                } else { // 类型未指定，赋值时确定, 就是右值的类型
+                    currentScope[name] = rightVal; // 用 nullptr 表示待推断的类型
+                    currentArrayLen[name] = len;
+                }
             }
         }
     }
@@ -276,6 +373,7 @@ void check_StructDef(std::ostream& out, aA_structDef sd)
     if (struct2Members.find(name) != struct2Members.end())
         error_print(out, sd->pos, "This id is already defined!");
     struct2Members[name] = &(sd->varDecls);
+    DEBUG_PRINT("structDef: " << name << " " << sd->pos->line << " " << sd->pos->col<< " size=" << sd->varDecls.size());
     return;
 }
 
@@ -340,14 +438,22 @@ void check_FnDef(std::ostream& out, aA_fnDef fd)
     // TODO: local里面对全局的g_token2Type的拷贝的冲突部分应该覆盖
     paramMemberMap& currentParam = paramStack.back();  // 使用当前作用域的paramMemberMap
     typeMap& currentScope = scopeStack.back();  // 使用当前作用域的typeMap
+    string name = *fd->fnDecl->id;
+    if (funcDefined.find(name) != funcDefined.end() && funcDefined[name]){
+        error_print(out, fd->pos, "Function '" + name + "' already defined.");
+    }
     for (aA_varDecl vd : fd->fnDecl->paramDecl->varDecls)
     {
+        string param_name = *vd->u.declScalar->id;
         /* fill code here */
-        currentParam[*vd->u.declScalar->id] = &(fd->fnDecl->paramDecl->varDecls);
+        currentParam[param_name] = &(fd->fnDecl->paramDecl->varDecls);
         // if (currentScope.find(*vd->u.declScalar->id) != currentScope.end()) {
         //     currentScope[*vd->u.declScalar->id] = get_VarDecl(vd); //覆盖全局变量
         // }
-        currentScope[*vd->u.declScalar->id] = get_VarDecl(vd); //覆盖全局变量
+        // currentScope[*vd->u.declScalar->id] = get_VarDecl(vd); //覆盖全局变量
+        currentScope[param_name] = tc_Type(vd);
+        DEBUG_PRINT("fnDef: " << param_name << " " << vd->pos->line << " " << vd->pos->col<< " type=" << vd->u.declScalar->type->type);
+        funcDefined[name] = true;
     }
     /* fill code here */
     for (aA_codeBlockStmt stmt : fd->stmts)
@@ -373,7 +479,7 @@ void check_CodeblockStmt(std::ostream& out, aA_codeBlockStmt cs){
     if(!cs)
         return;
     // variables declared in a code block should not duplicate with outer ones.
-    enterScope(); // 进入子作用域
+    // enterScope(); // 进入子作用域
     //如果是函数的话, 应该拷贝函数的参数列表, 覆盖全局作为局部变量
     switch (cs->kind)
     {
@@ -395,11 +501,14 @@ void check_CodeblockStmt(std::ostream& out, aA_codeBlockStmt cs){
     case A_codeBlockStmtType::A_returnStmtKind:
         check_ReturnStmt(out, cs->u.returnStmt);
         break;
+    case A_codeBlockStmtType::A_nullStmtKind:
+        break;
     default:
+        DEBUG_PRINT(cs->kind);
         error_print(out, cs->pos, "Unknown code block statement type.");
         break;
     }
-    leaveScope();
+    // leaveScope();
     return;
 }
 
@@ -411,6 +520,7 @@ void check_AssignStmt(std::ostream& out, aA_assignStmt as){
     string name;
     tc_type deduced_type; // deduced type if type is omitted at decl
     typeMap& currentScope = scopeStack.back();  // 使用当前作用域的typeMap
+    paramMemberMap& currentParam = paramStack.back();  // 使用当前作用域的paramMemberMap
     switch (as->leftVal->kind)
     {
         case A_leftValType::A_varValKind:{
@@ -451,17 +561,31 @@ void check_AssignStmt(std::ostream& out, aA_assignStmt as){
                     if (!comp_tc_type(declared_type, rightType)) {
                         error_print(out, as->pos, "Array '" + name + "' type mismatch.");
                     }
+                    // 检测一下长度
+                    uint currentLen = as->rightVal->u.arithExpr->u.exprUnit->u.arrayExpr->idx->u.num;
+                    DEBUG_PRINT("currentLen: " << currentLen);
+                    uint existLen = currentParam.at(name)->at(0)->u.declArray->len;
+                    DEBUG_PRINT("existLen: " << existLen);
+                    if (currentLen > existLen)
+                    {
+                        error_print(out, as->pos, "Array '" + name + "' index out of range.");
+                    }
                 }
             }
         }
             break;
         case A_leftValType::A_memberValKind:{
             /* TODO: 检查成员类型 */
-            name = *as->leftVal->u.memberExpr->structId->u.id;
+            name = *as->leftVal->u.memberExpr->structId->u.id;  //e.g. c.node, structId = c, memberId = node 
+            DEBUG_PRINT("memberVal: " << name << " " << as->pos->line << " " << as->pos->col<< " "<<*as->leftVal->u.memberExpr->memberId);
+            DEBUG_LIST_SCOPE();
             tc_type currentStruct = check_MemberExpr(out, as->leftVal->u.memberExpr);
-            if (currentStruct == nullptr) {
+            if (currentStruct == nullptr)
+            {
                 error_print(out, as->pos, "Member '" + *as->leftVal->u.memberExpr->memberId + "' not declared in struct.");
-            } else {
+            }
+            else
+            {
                 tc_type rightType = check_RightVal(out, as->rightVal);
                 if (!comp_tc_type(currentStruct, rightType)) {
                     error_print(out, as->pos, "Member '" + *as->leftVal->u.memberExpr->memberId + "' type mismatch.");
@@ -517,15 +641,26 @@ tc_type check_MemberExpr(std::ostream& out, aA_memberExpr me){
     if(!me)
         return nullptr;
     string name = *me->structId->u.id;
-    paramMemberMap &currentParam = paramStack.back();
-    // check struct name
+    DEBUG_PRINT("Checking Member of "<< name);// c
+    DEBUG_LIST_SCOPE(); //到这里都还对的
+    // DEBUG_LIST_PARAM();
+    typeMap &currentScope = scopeStack.back();         // 使用当前作用域的typeMap
+    paramMemberMap& currentParam = paramStack.back();  // 使用当前作用域的paramMemberMap
+    // check struct var name
     /* fill code here */
-    if (currentParam.find(name) == currentParam.end()) {
+    if (currentScope.find(name) == currentScope.end()) {
         error_print(out, me->pos, "Struct '" + name + "' not declared.");
     }
+    // 取出结构体类型的名称
+    tc_type structType = currentScope[name];
+    // 看看是不是结构体
+    if (structType == nullptr || structType->type->type != A_dataType::A_structTypeKind) {
+        error_print(out, me->pos, "Variable '" + name + "' should be a struct.");
+    }
+    string* structName = structType->type->u.structType;
     // check member name
     /* fill code here */
-    vector<aA_varDecl>* members = currentParam[name];
+    vector<aA_varDecl>* members = currentParam[*structName];
     for (aA_varDecl member : *members) {
         if (*member->u.declScalar->id == *me->memberId) {
             return tc_Type(member);
@@ -542,14 +677,18 @@ void check_IfStmt(std::ostream& out, aA_ifStmt is){
     check_BoolExpr(out, is->boolExpr);
     /* fill code here, take care of variable scope */
     // 貌似不需要做什么
+    enterScope();  // 进入if作用域
     for(aA_codeBlockStmt s : is->ifStmts){
         check_CodeblockStmt(out, s);
     }
-    /* fill code here */    
+    leaveScope();  // 离开if作用域
+    /* fill code here */ 
+    enterScope();  // 进入else作用域   
     for(aA_codeBlockStmt s : is->elseStmts){
         check_CodeblockStmt(out, s);
     }
     /* fill code here */
+    leaveScope();  // 离开else作用域
     return;
 }
 
@@ -580,8 +719,11 @@ void check_BoolUnit(std::ostream& out, aA_boolUnit bu){
     {
         case A_boolUnitType::A_comOpExprKind:{
             /* fill code here */
-            check_ExprUnit(out, bu->u.comExpr->left);
-            check_ExprUnit(out, bu->u.comExpr->right);
+            tc_type expr1 = check_ExprUnit(out, bu->u.comExpr->left);
+            tc_type expr2 = check_ExprUnit(out, bu->u.comExpr->right);
+            if (!comp_tc_type(expr1, expr2)) {
+                error_print(out, bu->pos, "Comparison type mismatch.");
+            }
         }
             break;
         case A_boolUnitType::A_boolExprKind:
@@ -695,12 +837,12 @@ void check_WhileStmt(std::ostream& out, aA_whileStmt ws){
         return;
     check_BoolExpr(out, ws->boolExpr);
     /* fill code here, take care of variable scope */
-
+    enterScope();  // 进入while作用域
     for(aA_codeBlockStmt s : ws->whileStmts){
         check_CodeblockStmt(out, s);
     }
     /* fill code here */
-        
+    leaveScope();  // 离开while作用域
     return;
 }
 

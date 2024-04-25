@@ -13,7 +13,9 @@ typedef struct tc_type_* tc_type;
 typedef std::unordered_map<string, tc_type> typeMap; 
 // typedef std::unordered_map<string, aA_type> varMap;
 // func name to params
-typedef std::unordered_map<string, vector<aA_varDecl>*> paramMemberMap; 
+typedef std::unordered_map<string, vector<aA_varDecl>*> paramMemberMap;
+typedef std::unordered_map<string, uint> lenMap;
+typedef std::unordered_map<string, bool> BoolMap;
 
 void check_Prog(std::ostream& out, aA_program p);
 void check_VarDecl(std::ostream& out, aA_varDeclStmt vd);
