@@ -1,0 +1,22 @@
+struct MyStruct { 
+    node:int,
+    len:int  
+}
+
+let m:MyStruct;
+
+fn main()->int;
+
+fn main()->int{
+    m.node = 3;
+    m.len = 2;
+    let a;
+    let b:int = 10;
+    a = b;
+    a = m;
+}
+
+/*
+    key:
+    Var a on line 16, col 5 assigning mismatch.
+*/

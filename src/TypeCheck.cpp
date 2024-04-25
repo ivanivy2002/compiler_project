@@ -1,6 +1,6 @@
 #include "TypeCheck.h"
 
-#define DEBUG_TYPECHECK
+// #define DEBUG_TYPECHECK
 
 #ifdef DEBUG_TYPECHECK
 #define DEBUG_PRINT(x) std::cout << "DEBUG: " << x << std::endl;
