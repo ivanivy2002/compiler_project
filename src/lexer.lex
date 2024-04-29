@@ -24,7 +24,7 @@ int calc(char *s, int len);
 "while" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return WHILE; }
 "break" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return BREAK; }
 "continue" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return CONTINUE; }
-"ret" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return RET; }
+"ret" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return RETURN; }
 "let" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return LET; }
 "int" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return INT; }
 "struct" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return STRUCT; }

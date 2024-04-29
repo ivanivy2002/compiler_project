@@ -72,7 +72,7 @@ extern int  yywrap();
 %token <pos> WHILE
 %token <pos> BREAK
 %token <pos> CONTINUE
-%token <pos> RET
+%token <pos> RETURN
 %token <pos> LET
 %token <pos> INT
 %token <pos> STRUCT
@@ -399,7 +399,7 @@ RightVal:
 }
 |
 {
-  $$ = nullptr; // 解决 "RET;"
+  $$ = nullptr; // 解决 "RETURN;"
 }
 ;
 
@@ -785,14 +785,14 @@ FnCall SEMI
 //39
 // A_returnStmt A_ReturnStmt(A_pos pos, A_rightVal retVal);
 ReturnStmt:
-RET RightVal SEMI
+RETURN RightVal SEMI
 {
-  $$ = A_ReturnStmt($1, $2); //RET is pos
+  $$ = A_ReturnStmt($1, $2); //RETURN is pos
 }
 // TODO: 在RightVal中加入空，这里就不再加入空了
-// | RET SEMI
+// | RETURN SEMI
 // {
-//   $$ = A_ReturnStmt($1, nullptr); //RET is pos
+//   $$ = A_ReturnStmt($1, nullptr); //RETURN is pos
 // }
 ;
 
