@@ -3,87 +3,72 @@
 #include <string.h>
 #include "TeaplAst.h"
 #include "y.tab.hpp"
-extern int line, col; /* line is current line number, col is current column number*/
-int c;
-int calc(char *s, int len);
+extern int line, col ;
+A_pos my_pos();
 %}
-
-%start COMMENT_1
-%start COMMENT_2
+%s COMMENT1
+%s COMMENT2
 
 %%
+<COMMENT1>"\n" { line+=1;col = 1;BEGIN INITIAL; }
+<COMMENT2>"\n" { line+=1; col = 1;}
+<COMMENT2>"*/" {col += yyleng; BEGIN INITIAL ; }
+<INITIAL>"//" { col += yyleng;BEGIN COMMENT1;}
+<INITIAL>"/*" { col += yyleng;BEGIN COMMENT2;}
 
-<INITIAL>{ 
-" " { col+=1; } /* 无意义字符 */
-"\t" { col+=4; }
-[\n\r] { line+=1; col=0; }
-"//" { BEGIN COMMENT_1; }
-"/*" { BEGIN COMMENT_2; }
-"if" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return IF; } /* 保留字 10 */
-"else" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return ELSE; }
-"while" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return WHILE; }
-"break" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return BREAK; }
-"continue" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return CONTINUE; }
-"ret" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return RETURN; }
-"let" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return LET; }
-"int" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return INT; }
-"struct" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return STRUCT; }
-"fn" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return FN; }
-"+" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return ADD; } /* OP 13 */
-"-" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return SUB; }
-"*" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return MUL; }
-"/" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return DIV; }
-"==" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return EQ; }
-"!=" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return NE; }
-"<" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return LT; }
-"<=" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return LE; }
-">" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return GT; }
-">=" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return GE; }
-"&&" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return AND; }
-"||" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return OR; }
-"!" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return NOT; }
-"=" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return ASSIGN; }/* "%"    { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return MOD; } */
-":" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return COLON;}/* 赋值，声明 */
-";" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return SEMI; }/* 连接分隔符 10 */
-"," { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return COMMA; }
-"."  { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return DOT; }
-"(" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return LP; }
-")" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return RP; }
-"[" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return LB; }
-"]" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return RB; }
-"{" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return LC; } // left curly
-"}" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return RC; }
-"->" { yylval.pos=A_Pos(line,col);col+=strlen(yytext);return RA; } // right arrow
-([1-9][0-9]*)|[0] {/* 数字和名 */
-    yylval.tokenNum = A_TokenNum(A_Pos(line, col), calc(yytext, yyleng));
-    col+=yyleng;
-    return NUM;
+
+
+<INITIAL>"\n" {line+=yyleng; col=1;}
+<INITIAL>"let " {yylval.pos = my_pos();col+=yyleng; return LET;}
+<INITIAL>"if" {yylval.pos = my_pos();col+=yyleng;return IF;}
+<INITIAL>"else" {yylval.pos = my_pos();col+=yyleng;return ELSE;}
+<INITIAL>"while" {yylval.pos = my_pos();col+=yyleng;return WHILE;}
+<INITIAL>"fn" {yylval.pos = my_pos();col+=yyleng;return FN;}
+<INITIAL>"ret" {yylval.pos = my_pos();col+=yyleng;return RET_;}
+<INITIAL>"struct" {yylval.pos = my_pos();col+=yyleng;return STRUCT;}
+<INITIAL>"break" {yylval.pos = my_pos();col+=yyleng;return BREAK;}
+<INITIAL>"continue" {yylval.pos = my_pos();col+=yyleng;return CONTINUE;}
+<INITIAL>"->" {yylval.pos = my_pos();col +=yyleng;return FnRetTypeDecl;}
+<INITIAL>"int" {yylval.pos = my_pos();col+=yyleng;yylval.type= A_NativeType(A_Pos(line,col),A_intTypeKind) ;return NativeType;}
+<INITIAL>"<=" {col+=yyleng;return LE;}
+<INITIAL>"<" {col+=yyleng;return LT;}
+<INITIAL>">=" {col+=yyleng;return GE;}
+<INITIAL>">" {col+=yyleng;return GT;}
+<INITIAL>"==" {col+=yyleng;return EEQ;}
+<INITIAL>"!=" {col+=yyleng; return NE;}
+<INITIAL>"=" { col+=yyleng;return EQ;}
+<INITIAL>"!"	{yylval.pos = my_pos(); col+=yyleng; return NOT ;}
+<INITIAL>"\t" {col +=4;}
+<INITIAL>" " {col +=1;}
+<INITIAL>"*" { col+=yyleng; yylval.op = A_mul; return MUL ;}
+<INITIAL>"/" { col+=yyleng; yylval.op = A_div; return DIV  ;}
+<INITIAL>"+"	{ col+=yyleng; yylval.op = A_add; return ADD ;}
+<INITIAL>"-"	{ col+=yyleng; yylval.op = A_sub; return SUB ;}
+<INITIAL>"&&" {col+=yyleng;return AND;}
+<INITIAL>"||" {col+=yyleng;return OR;}
+<INITIAL>"\(" {yylval.pos = my_pos();col+=yyleng; return LP ;}
+<INITIAL>")" {yylval.pos = my_pos();yylval.pos = my_pos(); col+=yyleng; return RP ;}
+<INITIAL>"[" { yylval.pos = my_pos();col+=yyleng; return MLP ;}
+<INITIAL>"]" { yylval.pos = my_pos();col+=yyleng; return MRP ;}
+<INITIAL>"{" { yylval.pos = my_pos();col+=yyleng; return BLP ;}
+<INITIAL>"}" { yylval.pos = my_pos();col+=yyleng; return BRP ;}
+<INITIAL>":" { yylval.pos = my_pos();col +=yyleng;return TypeAssign;}
+<INITIAL>";" {yylval.pos = my_pos();col +=yyleng;return StmtEnd;}
+<INITIAL>"," {yylval.pos = my_pos();col +=yyleng;return Comma;}
+<INITIAL>(0|([1-9][0-9]*)) { 
+	yylval.tokenNum= A_TokenNum(my_pos(),atoi(yytext));
+	col +=yyleng;
+	return NUMBER; 
 }
-[a-zA-Z_]([a-zA-Z0-9_])* {
-    yylval.tokenId = A_TokenId(A_Pos(line, col), strdup(yytext));
-    col+=yyleng;
-    return ID;
-}
-. { printf("Illegal CHAR: %s\n", yytext); }
-}
-<COMMENT_1>{
-[\n\r] { BEGIN(INITIAL); ++line; col=0; }
-. ;
-}
-<COMMENT_2>{
-"*/" { BEGIN(INITIAL); }
-[\n\r] { ++line; col=0; }
-. ;
+<INITIAL>"." {yylval.pos = my_pos();col +=yyleng;return POINT;}
+
+<INITIAL>[a-zA-Z_][a-zA-Z0-9_]* {
+    //it is important
+    char *res = (char *)calloc(sizeof(char),yyleng+1); 
+    strncpy(res,yytext,yyleng);
+    yylval.tokenId=A_TokenId(my_pos(),res);
+    col +=yyleng;
+	return term;
 }
 
 %%
-
-/* This function takes a string of digits and its length as input, 
- and returns the integer value of the string.
-*/
-int calc(char *s, int len) {
-    int ret = 0;
-    for(int i = 0; i < len; i++)
-        ret = ret * 10 + (s[i] - '0');
-    return ret;
-}

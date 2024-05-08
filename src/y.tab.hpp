@@ -49,83 +49,83 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    IF = 258,
-    ELSE = 259,
-    WHILE = 260,
-    BREAK = 261,
-    CONTINUE = 262,
-    RETURN = 263,
-    LET = 264,
-    INT = 265,
-    STRUCT = 266,
-    FN = 267,
-    ADD = 268,
-    SUB = 269,
-    MUL = 270,
-    DIV = 271,
-    EQ = 272,
-    NE = 273,
-    LT = 274,
-    LE = 275,
-    GT = 276,
-    GE = 277,
-    AND = 278,
-    OR = 279,
-    NOT = 280,
-    ASSIGN = 281,
-    COLON = 282,
-    SEMI = 283,
-    COMMA = 284,
-    DOT = 285,
-    LP = 286,
-    RP = 287,
-    LB = 288,
-    RB = 289,
-    LC = 290,
-    RC = 291,
-    RA = 292,
-    NUM = 293,
-    ID = 294
+    NOT = 258,
+    LP = 259,
+    RP = 260,
+    FnRetTypeDecl = 261,
+    LET = 262,
+    FN = 263,
+    IF = 264,
+    ELSE = 265,
+    WHILE = 266,
+    RET_ = 267,
+    STRUCT = 268,
+    BREAK = 269,
+    CONTINUE = 270,
+    TypeAssign = 271,
+    StmtEnd = 272,
+    EQ = 273,
+    MLP = 274,
+    MRP = 275,
+    BLP = 276,
+    BRP = 277,
+    Comma = 278,
+    POINT = 279,
+    term = 280,
+    LT = 281,
+    LE = 282,
+    GT = 283,
+    GE = 284,
+    EEQ = 285,
+    NE = 286,
+    OR = 287,
+    AND = 288,
+    SUB = 289,
+    ADD = 290,
+    MUL = 291,
+    DIV = 292,
+    NUMBER = 293,
+    NativeType = 294
   };
 #endif
 /* Tokens.  */
-#define IF 258
-#define ELSE 259
-#define WHILE 260
-#define BREAK 261
-#define CONTINUE 262
-#define RETURN 263
-#define LET 264
-#define INT 265
-#define STRUCT 266
-#define FN 267
-#define ADD 268
-#define SUB 269
-#define MUL 270
-#define DIV 271
-#define EQ 272
-#define NE 273
-#define LT 274
-#define LE 275
-#define GT 276
-#define GE 277
-#define AND 278
-#define OR 279
-#define NOT 280
-#define ASSIGN 281
-#define COLON 282
-#define SEMI 283
-#define COMMA 284
-#define DOT 285
-#define LP 286
-#define RP 287
-#define LB 288
-#define RB 289
-#define LC 290
-#define RC 291
-#define RA 292
-#define NUM 293
-#define ID 294
+#define NOT 258
+#define LP 259
+#define RP 260
+#define FnRetTypeDecl 261
+#define LET 262
+#define FN 263
+#define IF 264
+#define ELSE 265
+#define WHILE 266
+#define RET_ 267
+#define STRUCT 268
+#define BREAK 269
+#define CONTINUE 270
+#define TypeAssign 271
+#define StmtEnd 272
+#define EQ 273
+#define MLP 274
+#define MRP 275
+#define BLP 276
+#define BRP 277
+#define Comma 278
+#define POINT 279
+#define term 280
+#define LT 281
+#define LE 282
+#define GT 283
+#define GE 284
+#define EEQ 285
+#define NE 286
+#define OR 287
+#define AND 288
+#define SUB 289
+#define ADD 290
+#define MUL 291
+#define DIV 292
+#define NUMBER 293
+#define NativeType 294
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -133,53 +133,62 @@ union YYSTYPE
 {
 #line 20 "parser.yacc"
 
-  //这里直接copy TeaplAst.h里的定义
-  // 43个
-  A_pos pos;
-  A_program program;
-  A_programElementList programElementList;
-  A_programElement programElement;
-  A_arithExpr arithExpr;
-  A_exprUnit exprUnit;
-  A_structDef structDef;
-  A_varDeclStmt varDeclStmt;
-  A_fnDeclStmt fnDeclStmt;
-  A_fnDef fnDef;
-  A_type type;
-  A_varDecl varDecl; 
-  A_varDef varDef;
-  A_rightVal rightVal;
-  A_boolExpr boolExpr;
-  A_arithBiOpExpr arithBiOpExpr;
-  A_arithUExpr arithUExpr;
-  A_fnCall fnCall;
-  A_indexExpr indexExpr;
-  A_arrayExpr arrayExpr;
-  A_memberExpr memberExpr;
-  A_boolUnit boolUnit;
-  A_boolBiOpExpr boolBiOpExpr;
-  A_boolUOpExpr boolUOpExpr;
-  A_comExpr comExpr;
-  A_leftVal leftVal;
-  A_assignStmt assignStmt;
-  A_rightValList rightValList;
-  A_varDefScalar varDefScalar;
-  A_varDefArray varDefArray;
-  A_varDeclScalar varDeclScalar;
-  A_varDeclArray varDeclArray;
-  A_varDeclList varDeclList;
-  A_paramDecl paramDecl;
-  A_fnDecl fnDecl;
-  A_codeBlockStmt codeBlockStmt;
-  A_ifStmt ifStmt;
-  A_whileStmt whileStmt;
-  A_callStmt callStmt;
-  A_returnStmt returnStmt;
-  A_codeBlockStmtList codeBlockStmtList;
-  A_tokenId tokenId;
-  A_tokenNum tokenNum;
+	//int val;
+	//char *id;
+	A_pos pos;
+	A_tokenId tokenId;
+	A_tokenNum tokenNum;
 
-#line 183 "y.tab.hpp"
+	A_type type;
+	A_programElementList programElements;
+	A_programElement programElement;
+
+	A_varDeclStmt varDeclStmt;
+	A_varDecl varDecl;
+	A_varDef varDef;
+
+	A_rightValList rightValList;
+
+	A_varDeclList paramDecl;
+	A_codeBlockStmtList stmts;
+
+	A_structDef structDef;
+
+
+	A_fnDeclStmt fnDeclStmt;
+	A_fnDecl fnDecl;
+
+	A_fnDef fnDef;
+
+	A_codeBlockStmt codeBlockStmt;
+
+	A_assignStmt assignStmt;
+	A_callStmt callStmt;
+	A_ifStmt ifStmt;
+	A_whileStmt whileStmt;
+	A_returnStmt returnStmt;
+
+	//rightVal
+	A_rightVal rightVal;
+	//leftVal
+	A_leftVal leftVal;
+	A_arithExpr arithExpr;
+	A_boolExpr boolExpr;
+	A_arithBiOpExpr arithBiOpExpr;
+	A_exprUnit exprUnit;
+	A_arithUExpr arithUExpr;
+	A_arithBiOp op;
+	A_fnCall fnCall;
+	A_indexExpr indexExpr;
+	A_memberExpr memberExpr;
+	A_boolBiOpExpr boolBiOpExpr;
+	A_boolUnit boolUnit;
+	A_comExpr comExpr;
+	A_boolUOpExpr boolUOpExpr;
+
+
+
+#line 192 "y.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
