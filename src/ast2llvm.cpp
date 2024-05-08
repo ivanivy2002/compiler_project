@@ -13,7 +13,7 @@ static unordered_map<string, StructInfo> structInfoMap;
 static unordered_map<string, Name_name *> globalVarMap;
 static unordered_map<string, Temp_temp *> localVarMap;
 static list<pair<Temp_label *, Temp_label *>> blockstack;
-static unordered_map<string, L_funcdecl *> funcalargs;
+static unordered_map<string, L_funcdecl *> funcDeclMap;
 static list<L_stm *> emit_irs;
 
 LLVMIR::L_prog *ast2llvm(aA_program p)
@@ -263,6 +263,7 @@ std::vector<LLVMIR::L_def *> ast2llvmProg_first(aA_program p)
     defs.push_back(L_Funcdecl("putarray", vector<TempDef>{TempDef(TempType::INT_TEMP), TempDef(TempType::INT_PTR, -1)}, FuncType(ReturnType::VOID_TYPE)));
     defs.push_back(L_Funcdecl("_sysy_starttime", vector<TempDef>{TempDef(TempType::INT_TEMP)}, FuncType(ReturnType::VOID_TYPE)));
     defs.push_back(L_Funcdecl("_sysy_stoptime", vector<TempDef>{TempDef(TempType::INT_TEMP)}, FuncType(ReturnType::VOID_TYPE)));
+    // 
     funcReturnMap.emplace("getch", FuncType(ReturnType::INT_TYPE));
     funcReturnMap.emplace("getint", FuncType(ReturnType::INT_TYPE));
     funcReturnMap.emplace("putch", FuncType(ReturnType::VOID_TYPE));
@@ -270,13 +271,13 @@ std::vector<LLVMIR::L_def *> ast2llvmProg_first(aA_program p)
     funcReturnMap.emplace("putarray", FuncType(ReturnType::VOID_TYPE));
     funcReturnMap.emplace("_sysy_starttime", FuncType(ReturnType::VOID_TYPE));
     funcReturnMap.emplace("_sysy_stoptime", FuncType(ReturnType::VOID_TYPE));
-    funcalargs.emplace("getch", new L_funcdecl("getch", vector<TempDef>(), FuncType(ReturnType::INT_TYPE)));
-    funcalargs.emplace("getint", new L_funcdecl("getint", vector<TempDef>(), FuncType(ReturnType::INT_TYPE)));
-    funcalargs.emplace("putch", new L_funcdecl("putch", vector<TempDef>{TempDef(TempType::INT_TEMP)}, FuncType(ReturnType::VOID_TYPE)));
-    funcalargs.emplace("putint", new L_funcdecl("putint", vector<TempDef>{TempDef(TempType::INT_TEMP)}, FuncType(ReturnType::VOID_TYPE)));
-    funcalargs.emplace("putarray", new L_funcdecl("putarray", vector<TempDef>{TempDef(TempType::INT_TEMP), TempDef(TempType::INT_PTR, -1)}, FuncType(ReturnType::VOID_TYPE)));
-    funcalargs.emplace("_sysy_starttime", new L_funcdecl("_sysy_starttime", vector<TempDef>{TempDef(TempType::INT_TEMP)}, FuncType(ReturnType::VOID_TYPE)));
-    funcalargs.emplace("_sysy_stoptime", new L_funcdecl("_sysy_stoptime", vector<TempDef>{TempDef(TempType::INT_TEMP)}, FuncType(ReturnType::VOID_TYPE)));
+    funcDeclMap.emplace("getch", new L_funcdecl("getch", vector<TempDef>(), FuncType(ReturnType::INT_TYPE)));
+    funcDeclMap.emplace("getint", new L_funcdecl("getint", vector<TempDef>(), FuncType(ReturnType::INT_TYPE)));
+    funcDeclMap.emplace("putch", new L_funcdecl("putch", vector<TempDef>{TempDef(TempType::INT_TEMP)}, FuncType(ReturnType::VOID_TYPE)));
+    funcDeclMap.emplace("putint", new L_funcdecl("putint", vector<TempDef>{TempDef(TempType::INT_TEMP)}, FuncType(ReturnType::VOID_TYPE)));
+    funcDeclMap.emplace("putarray", new L_funcdecl("putarray", vector<TempDef>{TempDef(TempType::INT_TEMP), TempDef(TempType::INT_PTR, -1)}, FuncType(ReturnType::VOID_TYPE)));
+    funcDeclMap.emplace("_sysy_starttime", new L_funcdecl("_sysy_starttime", vector<TempDef>{TempDef(TempType::INT_TEMP)}, FuncType(ReturnType::VOID_TYPE)));
+    funcDeclMap.emplace("_sysy_stoptime", new L_funcdecl("_sysy_stoptime", vector<TempDef>{TempDef(TempType::INT_TEMP)}, FuncType(ReturnType::VOID_TYPE)));
     for (const auto &v : p->programElements)
     {
 
@@ -493,7 +494,7 @@ std::vector<LLVMIR::L_def *> ast2llvmProg_first(aA_program p)
                 }
             }
             // defs.push_back(L_Funcdecl(*v->u.fnDeclStmt->fnDecl->id, args, type));
-            funcalargs.emplace(*v->u.fnDeclStmt->fnDecl->id, new L_funcdecl(*v->u.fnDeclStmt->fnDecl->id, args, type));
+            funcDeclMap.emplace(*v->u.fnDeclStmt->fnDecl->id, new L_funcdecl(*v->u.fnDeclStmt->fnDecl->id, args, type));
 
             break;
         }
@@ -614,8 +615,8 @@ Func_local *ast2llvmFunc(aA_fnDef f)
             break;
         }
     }
-    if (funcalargs.find(name) == funcalargs.end())
-        funcalargs.emplace(name, new L_funcdecl(name, args__, ret));
+    if (funcDeclMap.find(name) == funcDeclMap.end())
+        funcDeclMap.emplace(name, new L_funcdecl(name, args__, ret));
     std::vector<string> fnvector;
     for (auto &x : f->stmts)
     {
@@ -1547,7 +1548,7 @@ AS_operand *ast2llvmFnCall(aA_fnCall callExpr)
 
         AS_operand *left = ast2llvmRightVal(callExpr->vals[i]);
 
-        TempDef &tempdef = funcalargs[name]->args[i];
+        TempDef &tempdef = funcDeclMap[name]->args[i];
 
         AS_operand *res = fnarg(left, tempdef);
 
