@@ -16,6 +16,11 @@ static list<pair<Temp_label *, Temp_label *>> blockstack;
 static unordered_map<string, L_funcdecl *> funcDeclMap;
 static list<L_stm *> emit_irs;
 
+inline string to_name(A_pos pos, string name="")
+{
+    return "bb" + name + "_" + to_string(pos->line) + "_" + to_string(pos->col);
+}
+
 LLVMIR::L_prog *ast2llvm(aA_program p)
 {
 
@@ -567,7 +572,7 @@ Func_local *ast2llvmFunc(aA_fnDef f)
     string name = *f->fnDecl->id;
     FuncType ret = funcReturnMap[name];
     vector<Temp_temp *> args;
-    vector<TempDef> args__;
+    vector<TempDef> argdefs;
     for (auto &x : f->fnDecl->paramDecl->varDecls)
     {
         switch (x->kind)
@@ -584,14 +589,14 @@ Func_local *ast2llvmFunc(aA_fnDef f)
                 ast2llvmAssignment(res, AS_Operand_Temp(temp));
 
                 args.push_back(temp);
-                args__.push_back(TempDef(TempType::INT_TEMP, 0, string()));
+                argdefs.push_back(TempDef(TempType::INT_TEMP, 0, string()));
                 localVarMap.emplace(*x->u.declScalar->id, temp_temp);
             }
             else
             {
                 Temp_temp *temp = Temp_newtemp_struct_ptr(0, *x->u.declScalar->type->u.structType);
                 args.push_back(temp);
-                args__.push_back(TempDef(TempType::STRUCT_TEMP, 0, *x->u.declScalar->type->u.structType));
+                argdefs.push_back(TempDef(TempType::STRUCT_TEMP, 0, *x->u.declScalar->type->u.structType));
 
                 localVarMap.emplace(*x->u.declScalar->id, temp);
             }
@@ -599,18 +604,20 @@ Func_local *ast2llvmFunc(aA_fnDef f)
         }
         case A_varDeclType::A_varDeclArrayKind:
         {
+            int len = -1;
+            len = x->u.declArray->len;
             if (x->u.declArray->type->type == A_dataType::A_nativeTypeKind)
             {
-                Temp_temp *temp = Temp_newtemp_int_ptr(-1);
+                Temp_temp *temp = Temp_newtemp_int_ptr(len);
                 args.push_back(temp);
-                args__.push_back(TempDef(TempType::INT_PTR, -1, string()));
+                argdefs.push_back(TempDef(TempType::INT_PTR, len, string()));
                 localVarMap.emplace(*x->u.declArray->id, temp);
             }
             else
             {
-                Temp_temp *temp = Temp_newtemp_struct_ptr(-1, *x->u.declArray->type->u.structType);
+                Temp_temp *temp = Temp_newtemp_struct_ptr(len, *x->u.declArray->type->u.structType);
                 args.push_back(temp);
-                args__.push_back(TempDef(TempType::STRUCT_PTR, -1, *x->u.declArray->type->u.structType));
+                argdefs.push_back(TempDef(TempType::STRUCT_PTR, len, *x->u.declArray->type->u.structType));
                 localVarMap.emplace(*x->u.declArray->id, temp);
             }
             break;
@@ -620,7 +627,7 @@ Func_local *ast2llvmFunc(aA_fnDef f)
         }
     }
     if (funcDeclMap.find(name) == funcDeclMap.end())
-        funcDeclMap.emplace(name, new L_funcdecl(name, args__, ret));
+        funcDeclMap.emplace(name, new L_funcdecl(name, argdefs, ret));
     std::vector<string> fnvector;
     for (auto &x : f->stmts)
     {
@@ -645,7 +652,8 @@ Func_local *ast2llvmFunc(aA_fnDef f)
     localVarMap.clear();
     return res;
 }
-void ast2llvmDefDecl(aA_varDeclStmt varDeclStmt, std::vector<string> &tempVector)
+
+void ast2llvmVarDecl(aA_varDeclStmt varDeclStmt, std::vector<string> &tempVector)
 {
     if (varDeclStmt->kind == A_varDeclKind) // 变量声明
     {
@@ -764,19 +772,19 @@ void ast2llvmDefDecl(aA_varDeclStmt varDeclStmt, std::vector<string> &tempVector
         assert(0);
     }
 }
+
 void ast2llvmBlock(aA_codeBlockStmt b, Temp_label *con_label, Temp_label *bre_label, std::vector<string> &tempVector)
 {
 
     aA_codeBlockStmt x = b;
-    switch (x->kind)
-    {
+    switch (x->kind){
     case A_codeBlockStmtType::A_nullStmtKind:
     {
         break;
     }
     case A_codeBlockStmtType::A_varDeclStmtKind:
     {
-        ast2llvmDefDecl(x->u.varDeclStmt, tempVector);
+        ast2llvmVarDecl(x->u.varDeclStmt, tempVector);
         break;
     }
     case A_codeBlockStmtType::A_assignStmtKind:
@@ -802,31 +810,11 @@ void ast2llvmBlock(aA_codeBlockStmt b, Temp_label *con_label, Temp_label *bre_la
     case A_codeBlockStmtType::A_whileStmtKind:
     {
 
-        string name1 = "bb_while_" + to_string(x->pos->col) + "_" + to_string(x->pos->line);
+        string name1 = to_name(x->pos, "_while_");
         Temp_label *new_con = Temp_newlabel_named(name1 + "_cond");
         Temp_label *new_bre = Temp_newlabel_named(name1 + "_bre");
         Temp_label *true_label = Temp_newlabel_named(name1 + "_whilestms");
-        emit_irs.push_back(L_Jump(new_con));
-        emit_irs.push_back(L_Label(new_con));
-        std::vector<string> whileVector;
-        ast2llvmBoolExpr(x->u.whileStmt->boolExpr, true_label, new_bre);
-        emit_irs.push_back(L_Label(true_label));
-
-        for (auto &xx : x->u.whileStmt->whileStmts)
-        {
-            ast2llvmBlock(xx, new_con, new_bre, whileVector);
-            if (xx->kind == A_codeBlockStmtType::A_returnStmtKind)
-            {
-                break;
-            }
-        }
-        for (auto &x : whileVector)
-        {
-            localVarMap.erase(x);
-        }
-        emit_irs.push_back(L_Jump(new_con));
-        emit_irs.push_back(L_Label(new_bre));
-
+        ast2llvmBlockWhile(x->u.whileStmt, new_con, new_bre, true_label);
         break;
     }
     case A_codeBlockStmtType::A_returnStmtKind:
@@ -860,13 +848,13 @@ void ast2llvmBlock(aA_codeBlockStmt b, Temp_label *con_label, Temp_label *bre_la
         emit_irs.push_back(L_Jump(bre_label));
         break;
     }
-    default:
-        break;
+    default: break;
     }
 }
+
 void ast2llvmBlockIf(aA_ifStmt b, Temp_label *con_label, Temp_label *bre_label)
 {
-    string name1 = "bb_if_" + to_string(b->pos->col) + "_" + to_string(b->pos->line);
+    string name1 = to_name(b->pos, "_if_");
     Temp_label *true_label = Temp_newlabel_named(name1 + "_true");
     Temp_label *false_label = Temp_newlabel_named(name1 + "_false");
     Temp_label *end_label = Temp_newlabel_named(name1 + "_end");
@@ -904,59 +892,68 @@ void ast2llvmBlockIf(aA_ifStmt b, Temp_label *con_label, Temp_label *bre_label)
     emit_irs.push_back(L_Jump(end_label));
     emit_irs.push_back(L_Label(end_label));
 }
+
+void ast2llvmBlockWhile(aA_whileStmt w, Temp_label *con_label, Temp_label *bre_label, Temp_label *true_label)
+{
+    emit_irs.push_back(L_Jump(con_label));
+    emit_irs.push_back(L_Label(con_label));
+    vector<string> whileVector;
+    ast2llvmBoolExpr(w->boolExpr, true_label, bre_label);
+    emit_irs.push_back(L_Label(true_label));
+    
+    for (auto &x:w->whileStmts){
+        ast2llvmBlock(x, con_label, bre_label, whileVector);
+        if (x->kind == A_codeBlockStmtType::A_returnStmtKind) break;
+        
+    }
+    for (auto &x:whileVector) localVarMap.erase(x);
+    emit_irs.push_back(L_Jump(con_label));
+    emit_irs.push_back(L_Label(bre_label));
+    return;
+}
+
+
 AS_operand *ast2llvmRightVal(aA_rightVal r)
 {
+    switch (r->kind){
+        case A_rightValType::A_arithExprValKind:
+            return ast2llvmArithExpr(r->u.arithExpr); break;
+        case A_rightValType::A_boolExprValKind:{
+            string name1 = to_name(r->pos);
+            Temp_label *my_true_label = Temp_newlabel_named(name1 + "true");
+            Temp_label *my_false_label = Temp_newlabel_named(name1 + "false");
+            Temp_label *my_end_label = Temp_newlabel_named(name1 + "end");
+            AS_operand *dst = AS_Operand_Temp(Temp_newtemp_int_ptr(0));
+            emit_irs.push_back(L_Alloca(dst));
+            ast2llvmBoolExpr(r->u.boolExpr, my_true_label, my_false_label);
+            emit_irs.push_back(L_Label(my_true_label));
+            emit_irs.push_back(L_Store(AS_Operand_Const(1), dst));
+            emit_irs.push_back(L_Jump(my_end_label));
+            emit_irs.push_back(L_Label(my_false_label));
+            emit_irs.push_back(L_Store(AS_Operand_Const(0), dst));
+            emit_irs.push_back(L_Jump(my_end_label));
 
-    switch (r->kind)
-    {
-    case A_rightValType::A_arithExprValKind:
-        return ast2llvmArithExpr(r->u.arithExpr);
-        /* code */
-        break;
-    case A_rightValType::A_boolExprValKind:
-    {
-        string name1 = "bb" + to_string(r->pos->col) + "_" + to_string(r->pos->line);
-        Temp_label *my_true_label = Temp_newlabel_named(name1 + "true");
-        Temp_label *my_false_label = Temp_newlabel_named(name1 + "false");
-        Temp_label *my_end_label = Temp_newlabel_named(name1 + "end");
-        AS_operand *dst = AS_Operand_Temp(Temp_newtemp_int_ptr(0));
-        emit_irs.push_back(L_Alloca(dst));
-        ast2llvmBoolExpr(r->u.boolExpr, my_true_label, my_false_label);
-        emit_irs.push_back(L_Label(my_true_label));
-        emit_irs.push_back(L_Store(AS_Operand_Const(1), dst));
-        emit_irs.push_back(L_Jump(my_end_label));
-        emit_irs.push_back(L_Label(my_false_label));
-        emit_irs.push_back(L_Store(AS_Operand_Const(0), dst));
-        emit_irs.push_back(L_Jump(my_end_label));
-
-        emit_irs.push_back(L_Label(my_end_label));
-        AS_operand *res = AS_Operand_Temp(Temp_newtemp_int());
-        emit_irs.push_back(L_Load(res, dst));
-
-        return res;
-        break;
-    }
-
-    default:
-        break;
+            emit_irs.push_back(L_Label(my_end_label));
+            AS_operand *res = AS_Operand_Temp(Temp_newtemp_int());
+            emit_irs.push_back(L_Load(res, dst));
+            return res;
+            break;
+        }
+        default: break;
     }
 }
 
 AS_operand *ast2llvmLeftVal(aA_leftVal l) // 说明左值返回的一定是ptr
 {
-    switch (l->kind)
-    {
-    case A_leftValType::A_arrValKind:
-        return ast2llvmArray(l->u.arrExpr);
-    case A_leftValType::A_memberValKind:
-        return ast2llvmMember(l->u.memberExpr);
-    case A_leftValType::A_varValKind:
-        return ast2llvmId(*l->u.id);
-    default:
-        break;
+    switch (l->kind){
+        case A_leftValType::A_varValKind: return ast2llvmId(*l->u.id); break;
+        case A_leftValType::A_arrValKind: return ast2llvmArray(l->u.arrExpr); break;
+        case A_leftValType::A_memberValKind: return ast2llvmMember(l->u.memberExpr); break;
+        default: break;
     }
     return nullptr;
 }
+
 AS_operand *ast2llvmArray(aA_arrayExpr arrExpr)
 {
 
@@ -966,8 +963,7 @@ AS_operand *ast2llvmArray(aA_arrayExpr arrExpr)
     // 不知道返回值的类型 a[6].b[7]
 
     AS_operand *new_ptr = nullptr;
-    if (base_ptr->kind == OperandKind::NAME)
-    {
+    if (base_ptr->kind == OperandKind::NAME){
         Name_name *NAME = base_ptr->u.NAME;
         if (NAME->type == TempType::INT_PTR)
         {
@@ -995,6 +991,7 @@ AS_operand *ast2llvmArray(aA_arrayExpr arrExpr)
     emit_irs.push_back(L_Gep(new_ptr, base_ptr, index));
     return new_ptr;
 }
+
 AS_operand *ast2llvmMember(aA_memberExpr memberExpr)
 {
 
@@ -1038,6 +1035,7 @@ AS_operand *ast2llvmMember(aA_memberExpr memberExpr)
     emit_irs.push_back(L_Gep(new_ptr, base_ptr, index));
     return new_ptr;
 }
+
 void ast2llvmAssignment(AS_operand *left, AS_operand *right)
 {
 
@@ -1045,6 +1043,7 @@ void ast2llvmAssignment(AS_operand *left, AS_operand *right)
 
     emit_irs.push_back(L_Store(right_, left));
 }
+
 AS_operand *ast2llvmIndexExpr(aA_indexExpr index)
 {
     if (index->kind == A_numIndexKind)
@@ -1082,7 +1081,7 @@ void ast2llvmBoolBiOpExpr(aA_boolBiOpExpr b, Temp_label *true_label, Temp_label 
 {
     // 带有中断 a||b&&c
     aA_boolExpr left = b->left;
-    string name1 = "bb" + to_string(b->right->pos->col) + "_" + to_string(b->right->pos->line);
+    string name1 = to_name(b->right->pos);
     Temp_label *my_true_label = Temp_newlabel_named(name1 + "true");
     Temp_label *my_false_label = Temp_newlabel_named(name1 + "false");
     Temp_label *checksecond = Temp_newlabel_named(name1 + "checksecond");
@@ -1177,17 +1176,16 @@ void ast2llvmComOpExpr(aA_comExpr c, Temp_label *true_label, Temp_label *false_l
     }
     emit_irs.push_back(L_Cjump(temp, true_label, false_label));
 }
+
 AS_operand *LOAD(AS_operand *left)
 {
-    switch (left->kind)
-    {
+    // 处理 left, 是指针就需要 L_Load
+    switch (left->kind){
     case OperandKind::TEMP:
     {
-        switch (left->u.TEMP->type)
-        {
+        switch (left->u.TEMP->type){
         case TempType::INT_PTR:
         {
-
             AS_operand *dst = AS_Operand_Temp(Temp_newtemp_int());
             emit_irs.push_back(L_Load(dst, left));
             return dst;
@@ -1257,6 +1255,7 @@ AS_operand *LOAD(AS_operand *left)
         break;
     }
 }
+
 AS_operand *fnarg(AS_operand *left, TempDef &tempdef)
 {
 
@@ -1417,6 +1416,7 @@ AS_operand *fnarg(AS_operand *left, TempDef &tempdef)
         break;
     }
 }
+
 AS_operand *ast2llvmArithBiOpExpr(aA_arithBiOpExpr a)
 {
     // 如果有一个是bool变量怎么办？
@@ -1477,6 +1477,7 @@ AS_operand *ast2llvmArithExpr(aA_arithExpr a)
         break;
     }
 }
+
 AS_operand *ast2llvmId(string id) // 返回指针
 {
 
@@ -1484,15 +1485,14 @@ AS_operand *ast2llvmId(string id) // 返回指针
     {
         // if a.b.c
         // 返回a的ptr
-
         return AS_Operand_Temp(localVarMap[id]);
     }
     else
     { // llvm-as: test.ll:20:16: error: global variable reference must have pointer type
-
         return AS_Operand_Name(globalVarMap[id]);
     }
 }
+
 AS_operand *ast2llvmExprUnit(aA_exprUnit e)
 {
 
@@ -1542,6 +1542,7 @@ AS_operand *ast2llvmExprUnit(aA_exprUnit e)
         break;
     }
 }
+
 AS_operand *ast2llvmFnCall(aA_fnCall callExpr)
 {
 
@@ -1580,6 +1581,7 @@ AS_operand *ast2llvmFnCall(aA_fnCall callExpr)
 
     return res;
 }
+
 LLVMIR::L_func *ast2llvmFuncBlock(Func_local *f)
 {
 
