@@ -1,13 +1,9 @@
 #!/bin/bash
-<<<<<<< HEAD
 func_testcase_dir=$(realpath $(dirname "$0")/./tests)
 tests_dir="./tests"  # Variable to hold the tests directory path
 output_dir="./output"  # Variable to hold the output directory path
-
-=======
-func_testcase_dir=$(realpath $(dirname "$0")/./tests/public)
-# func_testcase_dir=$(realpath $(dirname "$0")/./tests/private)
->>>>>>> bf1fed46e04be10531cceb747723970d6f2978a4
+# func_testcase_dir=$(realpath $(dirname "$0")/./tests/public)
+# # func_testcase_dir=$(realpath $(dirname "$0")/./tests/private)
 test_single() {
 	test_file=`realpath --relative-base=$func_testcase_dir $func_testcase_dir/$1.tea`
 	# test_file=$(realpath --relative-base=$func_testcase_dir $func_testcase_dir/$1.tea)
@@ -20,24 +16,19 @@ test_single() {
 	if [ $? != 0 ]; then
 		echo fail; exit -1
 	fi
-<<<<<<< HEAD
     llvm-link $tests_dir/$test_name.ll sylib.ll -S -o $output_dir/$test_name.ll
-=======
-    llvm-link-14 --opaque-pointers $func_testcase_dir/$test_name.ll sylib.ll -S -o ./output/$test_name.ll
->>>>>>> bf1fed46e04be10531cceb747723970d6f2978a4
+	# llvm-link-14 --opaque-pointers $func_testcase_dir/$test_name.ll sylib.ll -S -o ./output/$test_name.ll
+
 	if [ $? != 0 ]; then
 		echo "fail to link"; exit -1
 	fi
 	if [ -f $func_testcase_dir/$test_name.in ]; then
-<<<<<<< HEAD
     	lli $output_dir/$test_name.ll < $func_testcase_dir/$test_name.in > $output_dir/$test_name.out
 	else
     	lli $output_dir/$test_name.ll > $output_dir/$test_name.out
-=======
-    	lli-14 --opaque-pointers ./output/$test_name.ll < $func_testcase_dir/$test_name.in > output/$test_name.out
-	else
-    	lli-14 --opaque-pointers ./output/$test_name.ll > ./output/$test_name.out
->>>>>>> bf1fed46e04be10531cceb747723970d6f2978a4
+    # 	lli-14 --opaque-pointers ./output/$test_name.ll < $func_testcase_dir/$test_name.in > output/$test_name.out
+	# else
+    # 	lli-14 --opaque-pointers ./output/$test_name.ll > ./output/$test_name.out
 	fi
 	echo -e $? >> $output_dir/$test_name.out
 	diff -Bb $output_dir/$test_name.out $func_testcase_dir/$test_name.out > /dev/null 2>/dev/null
