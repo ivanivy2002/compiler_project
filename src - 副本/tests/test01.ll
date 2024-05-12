@@ -66,4 +66,3 @@ bb_while__15_5_bre:
   call void @_sysy_stoptime(i32 19)
   ret i32 0
 }
-
