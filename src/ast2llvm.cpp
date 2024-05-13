@@ -25,7 +25,6 @@ LLVMIR::L_prog *ast2llvm(aA_program p)
 {
 
     auto defs = ast2llvmProg_first(p);
-
     auto funcs = ast2llvmProg_second(p);
 
     vector<L_func *> funcs_block;
@@ -42,24 +41,19 @@ LLVMIR::L_prog *ast2llvm(aA_program p)
 
 int ast2llvmRightVal_first(aA_rightVal r)
 {
-    if (r == nullptr)
-    {
+    if (r == nullptr){
         return 0;
     }
-    switch (r->kind)
-    {
-    case A_arithExprValKind:
-    {
-        return ast2llvmArithExpr_first(r->u.arithExpr);
-        break;
-    }
-    case A_boolExprValKind:
-    {
-        return ast2llvmBoolExpr_first(r->u.boolExpr);
-        break;
-    }
-    default:
-        break;
+    switch (r->kind){
+        case A_arithExprValKind:{
+            return ast2llvmArithExpr_first(r->u.arithExpr);
+            break;
+        }
+        case A_boolExprValKind:{
+            return ast2llvmBoolExpr_first(r->u.boolExpr);
+            break;
+        }
+        default: break;
     }
     return 0;
 }
@@ -309,8 +303,7 @@ std::vector<LLVMIR::L_def *> ast2llvmProg_first(aA_program p)
                         TempDef def(TempType::STRUCT_TEMP, 0, *v->u.varDeclStmt->u.varDecl->u.declScalar->type->u.structType);
                         defs.push_back(L_Globaldef(*v->u.varDeclStmt->u.varDecl->u.declScalar->id, def, vector<int>()));
                     }
-                    else
-                    {
+                    else{
                         globalVarMap.emplace(*v->u.varDeclStmt->u.varDecl->u.declScalar->id,
                                              Name_newname_int(Temp_newlabel_named(*v->u.varDeclStmt->u.varDecl->u.declScalar->id)));
                         TempDef def(TempType::INT_TEMP, 0);
@@ -350,8 +343,7 @@ std::vector<LLVMIR::L_def *> ast2llvmProg_first(aA_program p)
                         TempDef def(TempType::STRUCT_TEMP, 0, *v->u.varDeclStmt->u.varDef->u.defScalar->type->u.structType);
                         defs.push_back(L_Globaldef(*v->u.varDeclStmt->u.varDef->u.defScalar->id, def, vector<int>()));
                     }
-                    else
-                    {
+                    else{
                         globalVarMap.emplace(*v->u.varDeclStmt->u.varDef->u.defScalar->id,
                                              Name_newname_int(Temp_newlabel_named(*v->u.varDeclStmt->u.varDef->u.defScalar->id)));
                         TempDef def(TempType::INT_TEMP, 0);
@@ -383,13 +375,11 @@ std::vector<LLVMIR::L_def *> ast2llvmProg_first(aA_program p)
                         defs.push_back(L_Globaldef(*v->u.varDeclStmt->u.varDef->u.defArray->id, def, init));
                     }
                 }
-                else
-                {
+                else{
                     assert(0);
                 }
             }
-            else
-            {
+            else{
                 assert(0);
             }
             break;
@@ -1040,7 +1030,6 @@ void ast2llvmAssignment(AS_operand *left, AS_operand *right)
 {
 
     AS_operand *right_ = LOAD(right);
-
     emit_irs.push_back(L_Store(right_, left));
 }
 
@@ -1192,23 +1181,17 @@ AS_operand *LOAD(AS_operand *left)
         }
         case TempType::INT_TEMP:
         {
-            return left;
-            break;
+            return left; break;
         }
         case TempType::STRUCT_TEMP:
         {
-            return left;
-            break;
+            return left; break;
         }
         case TempType::STRUCT_PTR:
         {
-
-            return left;
-            break;
+            return left; break;
         }
-        default:
-            return left;
-            break;
+        default: return left; break;
         }
     }
     break;

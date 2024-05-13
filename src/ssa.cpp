@@ -61,7 +61,7 @@ static bool is_mem_variable(L_stm* stm) {
     return stm->type == L_StmKind::T_ALLOCA && stm->u.ALLOCA->dst->kind == OperandKind::TEMP && stm->u.ALLOCA->dst->u.TEMP->type == TempType::INT_PTR && stm->u.ALLOCA->dst->u.TEMP->len == 0;
 }
 
-// 保证相同的AS_operand,地址一样 。常量除外
+// 保证相同的AS_operand,地址一样。常量除外
 void combine_addr(LLVMIR::L_func* fun) {
     unordered_map<Temp_temp*, unordered_set<AS_operand**>> temp_set;
     unordered_map<Name_name*, unordered_set<AS_operand**>> name_set;
@@ -92,56 +92,24 @@ void combine_addr(LLVMIR::L_func* fun) {
 }
 
 void mem2reg(LLVMIR::L_func* fun) {
-   //   Todo
+   //   TODO:
 }
 
 void Dominators(GRAPH::Graph<LLVMIR::L_block*>& bg) {
-    //   Todo
-}
-
-void printf_domi() {
-    printf("Dominator:\n");
-    for (auto x : dominators) {
-        printf("%s :\n", x.first->label->name.c_str());
-        for (auto t : x.second) {
-            printf("%s ", t->label->name.c_str());
-        }
-        printf("\n\n");
-    }
-}
-
-void printf_D_tree() {
-    printf("dominator tree:\n");
-    for (auto x : tree_dominators) {
-        printf("%s :\n", x.first->label->name.c_str());
-        for (auto t : x.second.succs) {
-            printf("%s ", t->label->name.c_str());
-        }
-        printf("\n\n");
-    }
-}
-void printf_DF() {
-    printf("DF:\n");
-    for (auto x : DF_array) {
-        printf("%s :\n", x.first->label->name.c_str());
-        for (auto t : x.second) {
-            printf("%s ", t->label->name.c_str());
-        }
-        printf("\n\n");
-    }
+    //   TODO:
 }
 
 void tree_Dominators(GRAPH::Graph<LLVMIR::L_block*>& bg) {
-    //   Todo
+    //TODO:
 }
 
 void computeDF(GRAPH::Graph<LLVMIR::L_block*>& bg, GRAPH::Node<LLVMIR::L_block*>* r) {
-    //   Todo
+    //   TODO:
 }
 
 // 只对标量做
 void Place_phi_fu(GRAPH::Graph<LLVMIR::L_block*>& bg, L_func* fun) {
-    //   Todo
+    //   TODO:
 }
 
 static list<AS_operand**> get_def_int_operand(LLVMIR::L_stm* stm) {
@@ -165,9 +133,42 @@ static list<AS_operand**> get_use_int_operand(LLVMIR::L_stm* stm) {
 }
 
 static void Rename_temp(GRAPH::Graph<LLVMIR::L_block*>& bg, GRAPH::Node<LLVMIR::L_block*>* n, unordered_map<Temp_temp*, stack<Temp_temp*>>& Stack) {
-   //   Todo
+   //   TODO:
 }
 
 void Rename(GRAPH::Graph<LLVMIR::L_block*>& bg) {
-   //   Todo
+   //   TODO:
+}
+
+void printf_domi() {
+    printf("Dominator:\n");
+    for (auto x : dominators) {
+        printf("%s :\n", x.first->label->name.c_str());
+        for (auto t : x.second) {
+            printf("%s ", t->label->name.c_str());
+        }
+        printf("\n\n");
+    }
+}
+
+void printf_D_tree() {
+    printf("dominator tree:\n");
+    for (auto x : tree_dominators) {
+        printf("%s :\n", x.first->label->name.c_str());
+        for (auto t : x.second.succs) {
+            printf("%s ", t->label->name.c_str());
+        }
+        printf("\n\n");
+    }
+}
+
+void printf_DF() {
+    printf("DF:\n");
+    for (auto x : DF_array) {
+        printf("%s :\n", x.first->label->name.c_str());
+        for (auto t : x.second) {
+            printf("%s ", t->label->name.c_str());
+        }
+        printf("\n\n");
+    }
 }
