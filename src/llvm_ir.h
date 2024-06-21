@@ -20,7 +20,6 @@ struct FuncType
 {
     ReturnType type;
     std::string structname;
-    // 这里 INT_TYPE 和 空字符串是 默认值
     FuncType(ReturnType _type = ReturnType::INT_TYPE,const std::string _name = std::string())
         : type(_type), structname(_name) {}
 };

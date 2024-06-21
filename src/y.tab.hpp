@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.5.1.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -31,8 +31,9 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-/* Undocumented macros, especially those whose name start with YY_,
-   are private implementation details.  Do not rely on them.  */
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with YY_ or yy_.  They are
+   private implementation details that can be changed or removed.  */
 
 #ifndef YY_YY_Y_TAB_HPP_INCLUDED
 # define YY_YY_Y_TAB_HPP_INCLUDED
@@ -44,151 +45,149 @@
 extern int yydebug;
 #endif
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    NOT = 258,
-    LP = 259,
-    RP = 260,
-    FnRetTypeDecl = 261,
-    LET = 262,
-    FN = 263,
-    IF = 264,
-    ELSE = 265,
-    WHILE = 266,
-    RET_ = 267,
-    STRUCT = 268,
-    BREAK = 269,
-    CONTINUE = 270,
-    TypeAssign = 271,
-    StmtEnd = 272,
-    EQ = 273,
-    MLP = 274,
-    MRP = 275,
-    BLP = 276,
-    BRP = 277,
-    Comma = 278,
-    POINT = 279,
-    term = 280,
-    LT = 281,
-    LE = 282,
-    GT = 283,
-    GE = 284,
-    EEQ = 285,
-    NE = 286,
-    OR = 287,
-    AND = 288,
-    SUB = 289,
-    ADD = 290,
-    MUL = 291,
-    DIV = 292,
-    NUMBER = 293,
-    NativeType = 294
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    ADD = 258,                     /* ADD  */
+    SUB = 259,                     /* SUB  */
+    MUL = 260,                     /* MUL  */
+    DIV = 261,                     /* DIV  */
+    SEMICOLON = 262,               /* SEMICOLON  */
+    LEFT_PARENT = 263,             /* LEFT_PARENT  */
+    RIGHT_PARENT = 264,            /* RIGHT_PARENT  */
+    LEFT_SQUARE_BRACKET = 265,     /* LEFT_SQUARE_BRACKET  */
+    RIGHT_SQUARE_BRACKET = 266,    /* RIGHT_SQUARE_BRACKET  */
+    LEFT_BRACE = 267,              /* LEFT_BRACE  */
+    RIGHT_BRACE = 268,             /* RIGHT_BRACE  */
+    GREATER = 269,                 /* GREATER  */
+    NOT_LESS_THEN = 270,           /* NOT_LESS_THEN  */
+    LESS = 271,                    /* LESS  */
+    NOT_GREATER_THEN = 272,        /* NOT_GREATER_THEN  */
+    EQUAL = 273,                   /* EQUAL  */
+    NOT_EQUAL = 274,               /* NOT_EQUAL  */
+    ASSIGN = 275,                  /* ASSIGN  */
+    COMMA = 276,                   /* COMMA  */
+    COLON = 277,                   /* COLON  */
+    LET = 278,                     /* LET  */
+    POINT = 279,                   /* POINT  */
+    RETURN = 280,                  /* RETURN  */
+    AND = 281,                     /* AND  */
+    OR = 282,                      /* OR  */
+    NOT = 283,                     /* NOT  */
+    FN = 284,                      /* FN  */
+    IF = 285,                      /* IF  */
+    ELSE = 286,                    /* ELSE  */
+    WHILE = 287,                   /* WHILE  */
+    BREAK = 288,                   /* BREAK  */
+    CONTINUE = 289,                /* CONTINUE  */
+    RIGHT_ARROW = 290,             /* RIGHT_ARROW  */
+    INT = 291,                     /* INT  */
+    STRUCT = 292,                  /* STRUCT  */
+    Id = 293,                      /* Id  */
+    Num = 294                      /* Num  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
-/* Tokens.  */
-#define NOT 258
-#define LP 259
-#define RP 260
-#define FnRetTypeDecl 261
-#define LET 262
-#define FN 263
-#define IF 264
-#define ELSE 265
-#define WHILE 266
-#define RET_ 267
-#define STRUCT 268
-#define BREAK 269
-#define CONTINUE 270
-#define TypeAssign 271
-#define StmtEnd 272
-#define EQ 273
-#define MLP 274
-#define MRP 275
-#define BLP 276
-#define BRP 277
-#define Comma 278
+/* Token kinds.  */
+#define YYEMPTY -2
+#define YYEOF 0
+#define YYerror 256
+#define YYUNDEF 257
+#define ADD 258
+#define SUB 259
+#define MUL 260
+#define DIV 261
+#define SEMICOLON 262
+#define LEFT_PARENT 263
+#define RIGHT_PARENT 264
+#define LEFT_SQUARE_BRACKET 265
+#define RIGHT_SQUARE_BRACKET 266
+#define LEFT_BRACE 267
+#define RIGHT_BRACE 268
+#define GREATER 269
+#define NOT_LESS_THEN 270
+#define LESS 271
+#define NOT_GREATER_THEN 272
+#define EQUAL 273
+#define NOT_EQUAL 274
+#define ASSIGN 275
+#define COMMA 276
+#define COLON 277
+#define LET 278
 #define POINT 279
-#define term 280
-#define LT 281
-#define LE 282
-#define GT 283
-#define GE 284
-#define EEQ 285
-#define NE 286
-#define OR 287
-#define AND 288
-#define SUB 289
-#define ADD 290
-#define MUL 291
-#define DIV 292
-#define NUMBER 293
-#define NativeType 294
+#define RETURN 280
+#define AND 281
+#define OR 282
+#define NOT 283
+#define FN 284
+#define IF 285
+#define ELSE 286
+#define WHILE 287
+#define BREAK 288
+#define CONTINUE 289
+#define RIGHT_ARROW 290
+#define INT 291
+#define STRUCT 292
+#define Id 293
+#define Num 294
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 20 "parser.yacc"
+#line 19 "parser.yacc"
 
-	//int val;
-	//char *id;
-	A_pos pos;
-	A_tokenId tokenId;
-	A_tokenNum tokenNum;
+  A_pos pos;//1
+  A_type type;//2
+  A_varDecl varDecl;//3
+  A_varDef varDef;//4
+  A_rightVal rightVal;//5
+  A_arithExpr arithExpr;//6
+  A_boolExpr boolExpr;//7
+  A_arithBiOpExpr arithBiOpExpr;//8
+  A_arithUExpr arithUExpr;//9
+  A_exprUnit exprUnit;//10
+  A_fnCall fnCall;//11
+  A_indexExpr indexExpr;//12
+  A_arrayExpr arrayExpr;//13
+  A_memberExpr memberExpr;//14
+  A_boolUnit boolUnit;//15
+  A_boolBiOpExpr boolBiOpExpr;//16
+  A_boolUOpExpr boolUOpExpr;//17
+  A_comExpr comExpr;//18
+  A_leftVal leftVal;//19
+  A_assignStmt assignStmt;//20
+  A_rightValList rightValList;//21
+  A_varDefScalar varDefScalar;//22
+  A_varDefArray varDefArray;//23
+  A_varDeclScalar varDeclScalar;//24
+  A_varDeclArray varDeclArray;//25
+  A_varDeclStmt varDeclStmt;//26
+  A_varDeclList varDeclList;//27
+  A_structDef structDef;//28
+  A_paramDecl paramDecl;//29
+  A_fnDecl fnDecl;//30
+  A_fnDef fnDef;//31
+  A_codeBlockStmt codeBlockStmt;//32
+  A_ifStmt ifStmt;//33
+  A_whileStmt whileStmt;//34
+  A_fnDeclStmt fnDeclStmt;//35
+  A_callStmt callStmt;//36
+  A_returnStmt returnStmt;//37
+  A_programElement programElement;//38
+  A_codeBlockStmtList codeBlockStmtList;//39
+  A_programElementList programElementList;//40
+  A_program program;//41
+  A_tokenId tokenId;//42
+  A_tokenNum tokenNum;//43
 
-	A_type type;
-	A_programElementList programElements;
-	A_programElement programElement;
-
-	A_varDeclStmt varDeclStmt;
-	A_varDecl varDecl;
-	A_varDef varDef;
-
-	A_rightValList rightValList;
-
-	A_varDeclList paramDecl;
-	A_codeBlockStmtList stmts;
-
-	A_structDef structDef;
-
-
-	A_fnDeclStmt fnDeclStmt;
-	A_fnDecl fnDecl;
-
-	A_fnDef fnDef;
-
-	A_codeBlockStmt codeBlockStmt;
-
-	A_assignStmt assignStmt;
-	A_callStmt callStmt;
-	A_ifStmt ifStmt;
-	A_whileStmt whileStmt;
-	A_returnStmt returnStmt;
-
-	//rightVal
-	A_rightVal rightVal;
-	//leftVal
-	A_leftVal leftVal;
-	A_arithExpr arithExpr;
-	A_boolExpr boolExpr;
-	A_arithBiOpExpr arithBiOpExpr;
-	A_exprUnit exprUnit;
-	A_arithUExpr arithUExpr;
-	A_arithBiOp op;
-	A_fnCall fnCall;
-	A_indexExpr indexExpr;
-	A_memberExpr memberExpr;
-	A_boolBiOpExpr boolBiOpExpr;
-	A_boolUnit boolUnit;
-	A_comExpr comExpr;
-	A_boolUOpExpr boolUOpExpr;
-
-
-
-#line 192 "y.tab.hpp"
+#line 191 "y.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -199,6 +198,8 @@ typedef union YYSTYPE YYSTYPE;
 
 extern YYSTYPE yylval;
 
+
 int yyparse (void);
+
 
 #endif /* !YY_YY_Y_TAB_HPP_INCLUDED  */

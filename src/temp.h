@@ -68,7 +68,6 @@ Name_name *Name_newname_int_ptr(Temp_label *name,int len);
 Name_name *Name_newname_struct(Temp_label *name,const std::string &structname);
 Name_name *Name_newname_struct_ptr(Temp_label *name,int len,const std::string &structname);
 
-// 操作数有三种类型：临时变量、标签、整数常量
 enum class OperandKind
 {
     TEMP, NAME, ICONST
